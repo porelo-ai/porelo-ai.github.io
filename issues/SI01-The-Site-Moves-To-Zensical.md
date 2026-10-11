@@ -1,11 +1,12 @@
 # SI01 — The Site Moves To Zensical
 
-**Status:** Analyzed.
+**Status:** Estimated.
 **Size:** M - the requirements with their hashes, the workflow's build step and a side-by-side check of the rendered
 pages; the collector (`build/assemble.py`) keeps writing a `mkdocs.yml`, which the successor reads.
 
 **What must be true.** The site is built by a generator its makers maintain: Zensical, the successor of Material for
-MkDocs, once it reaches 1.0 or once Material's promised support ends, about 2026-11-05, whichever comes first.
+MkDocs, by 2026-11-05, when Material's promised support ends, whatever Zensical's version is then (decided
+2026-10-11).
 
 ## Why
 
@@ -31,10 +32,6 @@ carry over; it was at 0.0.68 on 2026-10-05, releasing every few days.
   Seen to fail: a page Material rendered (the Agents table, a long page of `core`, the tabs) missing or cut off in
   Zensical's build, compared side by side before the switch.
 - Nothing of MkDocs or Material is installed any more.
-
-## Open questions
-
-- Whether to wait for its 1.0 or switch by 2026-11-05 whatever its version (the operator's).
 
 ## To be checked
 
