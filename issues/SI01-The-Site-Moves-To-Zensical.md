@@ -32,8 +32,11 @@ carry over; it was at 0.0.68 on 2026-10-05, releasing every few days.
   Zensical's build, compared side by side before the switch.
 - Nothing of MkDocs or Material is installed any more.
 
+## Open questions
+
+- Whether to wait for its 1.0 or switch by 2026-11-05 whatever its version (the operator's).
+
 ## To be checked
 
 - Whether every feature the site uses (tabs, sections, search, both colour schemes, permalinks) is there in the
   version taken (Agent Core's, measured on its build).
-- Whether to wait for its 1.0 or switch by 2026-11-05 whatever its version (the operator's).
