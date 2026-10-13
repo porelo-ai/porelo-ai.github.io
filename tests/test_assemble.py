@@ -222,5 +222,56 @@ class AssembleTest(unittest.TestCase):
         self.assertEqual([part["name"] for part in self.run_with(readable)], ["sokar-project", "core"])
 
 
+class MenuTest(unittest.TestCase):
+
+    @staticmethod
+    def config(names):
+        def readable(name, url, where):
+            os.makedirs(os.path.join(where, "doc"))
+            with open(os.path.join(where, "doc", "index.md"), "w", encoding="utf-8") as page:
+                page.write(f"# {name}\n")
+            return {"name": name, "ref": "main", "commit": "0" * 40}
+
+        parts = [(name, f"https://github.com/sokar-ai/{name}.git", "") for name in names]
+        with tempfile.TemporaryDirectory() as out, \
+                mock.patch.object(assemble, "parts", return_value=parts), \
+                mock.patch.object(assemble, "fetch", side_effect=readable):
+            assemble.assemble(os.path.join(out, "site"), {"repositories": {}}, {})
+            with open(os.path.join(out, "site", "mkdocs.yml"), encoding="utf-8") as file:
+                config = assemble.yaml.safe_load(file)
+            written = os.path.isfile(os.path.join(out, "site", "docs", "index.md"))
+        return config, written
+
+    def test_the_menu_is_a_tab_per_kind_of_part_with_each_repository_a_section(self):
+        config, _ = self.config(["core", "frontend", "sluice", "matrix", "claude", "pi", "omp", "buildtools", "github",
+                                 "intellij", "sokar-project"])
+
+        self.assertEqual(config["nav"], [
+            {"sokar": ["core/index.md"]},
+            {"agents": [{"claude code": ["claude/index.md"]}, {"pi": ["pi/index.md"]}, {"omp": ["omp/index.md"]}]},
+            {"build readers": [{"github": ["github/index.md"]}]},
+            {"messaging": [{"matrix": ["matrix/index.md"]}, {"sluice": ["sluice/index.md"]}]},
+            {"ui": [{"frontend": ["frontend/index.md"]}, {"intellij": ["intellij/index.md"]}]},
+            {"internal": [{"buildtools": ["buildtools/index.md"]}, {"sokar project": ["sokar-project/index.md"]}]},
+        ])
+
+    def test_a_repository_no_group_names_is_a_tab_of_its_own_at_the_end(self):
+        config, _ = self.config(["newcomer", "core"])
+
+        self.assertEqual(config["nav"], [{"sokar": ["core/index.md"]}, {"newcomer": ["newcomer/index.md"]}])
+
+    def test_a_group_with_nothing_built_is_left_out(self):
+        config, _ = self.config(["core", "pi"])
+
+        self.assertEqual([next(iter(tab)) for tab in config["nav"]], ["sokar", "agents"])
+
+    def test_the_landing_page_is_written_and_has_no_tab(self):
+        config, written = self.config(["core"])
+
+        self.assertTrue(written)
+        self.assertNotIn("index.md", str(config["nav"]).replace("core/index.md", ""))
+        self.assertEqual(config["not_in_nav"], "/index.md")
+
+
 if __name__ == "__main__":
     unittest.main()

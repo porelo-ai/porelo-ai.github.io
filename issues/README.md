@@ -5,6 +5,12 @@ issue, and who sets which state, are in [AGENTS.md](../AGENTS.md). *Open questio
 waits on the operator: the items under an issue's own *Open questions*. Its prefix is `SI`. A group with nothing in it is
 left out.
 
+## Review
+
+| # | Size | Blocked by | What it covers |
+|---|---|---|---|
+| <a id="si02"></a>[SI02](SI02-The-Menu-Grouped-By-What-A-Part-Is.md) | S | - | Six tabs - sokar, agents, build readers, messaging, ui, internal - with each repository a section beneath; a repository not mapped gets a tab of its own; the landing page leaves the menu. |
+
 ## Estimated
 
 | # | Size | Blocked by | What it covers |

@@ -130,6 +130,39 @@ THEME = {
     ],
 }
 
+# The menu: a tab per kind of part, in this order, each repository a section in its tab's sidebar under its label. Here
+# and not in project.yml, which is a Sokar project file with no field for groups. A tab alone in its group shows its
+# pages directly, with no section between. A repository with pages that no group names gets a tab of its own after
+# these, so a new one is never lost.
+GROUPS = [
+    ("sokar", [("core", "sokar")]),
+    ("agents", [("claude", "claude code"), ("pi", "pi"), ("omp", "omp")]),
+    ("build readers", [("github", "github"), ("bitbucket", "bitbucket"), ("jenkins", "jenkins")]),
+    ("messaging", [("matrix", "matrix"), ("sluice", "sluice")]),
+    ("ui", [("frontend", "frontend"), ("intellij", "intellij")]),
+    ("internal", [("buildtools", "buildtools"), (PROJECT, "sokar project")]),
+]
+
+
+def grouped(sections):
+    """The menu from each built repository's section, by name, grouped as GROUPS says."""
+    nav, named = [], set()
+    for tab, members in GROUPS:
+        named.update(name for name, _ in members)
+        built = [(label, sections[name]) for name, label in members if name in sections]
+        if not built:
+            continue
+        if tab == "sokar":
+            nav.append({tab: built[0][1]})
+        else:
+            nav.append({tab: [{label: section} for label, section in built]})
+    for name, section in sections.items():
+        if name not in named:
+            log(f"{name} is in no group of the menu: a tab of its own")
+            nav.append({name: section})
+    return nav
+
+
 # What a page shows besides its text. Anything else in doc/ - a walk's JSON, a fixture - is not for the site.
 ASSETS = (".png", ".svg", ".jpg", ".jpeg", ".gif", ".webp")
 
@@ -212,7 +245,7 @@ def assemble(out, project, local):
     shutil.copyfile(EARLY_BIRD, os.path.join(docs, "images", "early-bird.svg"))
     # Every repository read, with or without doc/: what an hourly run compares, so one with nothing to show does not
     # look changed at every hour.
-    built, considered, unread, nav = [], [], [], [{"Sokar": "index.md"}]
+    built, considered, unread, sections = [], [], [], {}
     for name, url, description in parts(project):
         checkout = os.path.join(out, "repositories", name)
         if name in local:
@@ -252,7 +285,7 @@ def assemble(out, project, local):
         built.append(taken)
         section = nav_of(checkout, name)
         taken["first"] = first_page(section)
-        nav.append({name: section})
+        sections[name] = section
     unread_stops(unread)
     with open(os.path.join(docs, "index.md"), "w", encoding="utf-8") as index:
         index.write(landing(built, docs))
@@ -261,7 +294,8 @@ def assemble(out, project, local):
     config = {"site_name": "Sokar", "site_url": SITE_URL, "repo_url": f"https://github.com/{ORG}",
               "docs_dir": "docs", "site_dir": "site", "theme": THEME, "plugins": ["search"],
               "markdown_extensions": ["tables", "admonition", "attr_list", {"toc": {"permalink": True}}],
-              "strict": True, "nav": nav}
+              # The landing page is the site's root, where the title leads, and no tab of its own.
+              "strict": True, "not_in_nav": "/index.md", "nav": grouped(sections)}
     with open(os.path.join(out, "mkdocs.yml"), "w", encoding="utf-8") as file:
         yaml.safe_dump(config, file, sort_keys=False, allow_unicode=True)
     return built
