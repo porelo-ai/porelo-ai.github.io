@@ -1,6 +1,6 @@
 # SI03 — Sokar Renamed Porelo Here
 
-**Status:** Analyzed.
+**Status:** Estimated.
 **Size:** S - 141 occurrences in 9 of 20 files, no path; the site's repository, its address and one secret are
 renamed at GitHub.
 
