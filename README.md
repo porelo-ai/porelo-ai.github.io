@@ -1,18 +1,18 @@
-# sokar-ai.github.io
+# porelo-ai.github.io
 
 <img src="doc/images/early-bird.svg" width="350" alt="Early bird - work in progress">
 
-> **Early bird - work in progress.** Sokar is not stable yet: until release 1.0.0, its code, commands
+> **Early bird - work in progress.** Porelo is not stable yet: until release 1.0.0, its code, commands
 > and file formats can change without notice.
 
-The documentation of every part of Sokar as one site: **<https://sokar-ai.github.io>**.
+The documentation of every part of Porelo as one site: **<https://porelo-ai.github.io>**.
 
 Nothing here is written by hand except how the site is put together. Each repository keeps its documentation in
 its own `doc/`, where its code is, and checks it there; this repository only collects it.
 
 ## How the site is built
 
-- **Which repositories, in which order:** those `sokar-ai/sokar-project`'s `project.yml` names under
+- **Which repositories, in which order:** those `porelo-ai/porelo-project`'s `project.yml` names under
   `repositories`, in that order, and the project's own last, as the one of least interest to a user. A
   repository without `doc/` is left out, and the run's log says so; one that cannot be read fails the build, so a
   site with a part missing is never published.
@@ -34,7 +34,7 @@ search, light or dark as the reader's system says, and tables that wrap.
 ```sh
 python3 -m venv .venv && .venv/bin/pip install --no-deps --require-hashes -r build/requirements.txt
 .venv/bin/python build/assemble.py --out /tmp/site                     # from GitHub, as the workflow does
-.venv/bin/python build/assemble.py --out /tmp/site --local sokar=../sokar --project-yml ../sokar-project/project.yml
+.venv/bin/python build/assemble.py --out /tmp/site --local porelo=../porelo --project-yml ../porelo-project/project.yml
 .venv/bin/mkdocs serve --config-file /tmp/site/mkdocs.yml
 ```
 
@@ -47,8 +47,8 @@ It reads the other repositories and writes this repository's Pages; nothing else
 - **Built and checked from now on, published once the repositories are public** (2026-10-04): every run builds the whole
   site strict; the deploy runs only where the repository variable `PUBLISH` is `true`, set once the repositories
   are public.
-- **Its one secret, until then:** `SOKAR_DOCS_READ`, a fine-grained token with **Contents: read** (and the
-  Metadata: read that comes with it) on the Sokar repositories. Once they are public it is deleted, with the lines
+- **Its one secret, until then:** `PORELO_DOCS_READ`, a fine-grained token with **Contents: read** (and the
+  Metadata: read that comes with it) on the Porelo repositories. Once they are public it is deleted, with the lines
   that name it.
 - **An hourly run builds only when something moved:** the last build's manifest is kept in the Actions cache, and
   a run that finds the same one has nothing to do.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Assembles one documentation site from the doc/ of every Sokar repository.
+"""Assembles one documentation site from the doc/ of every Porelo repository.
 
-The list of repositories, and their order, is sokar-project's project.yml: its `repositories`, each with the
+The list of repositories, and their order, is porelo-project's project.yml: its `repositories`, each with the
 `upstream` it is reached at. For each, the documentation on its default branch is taken, so a page appears within
 the hour of a push, and the start page says at which commit. A repository with no doc/ is left out and named in the
 log.
@@ -10,7 +10,7 @@ A section's order is the `nav` of that repository's own mkdocs.yml, when it has 
 its other pages by name. A relative link that leaves doc/ (to the README, to issues/) would be dead on the site,
 so it is turned into a link to that file in the repository, at the commit the section was built from.
 
-Reads only. While the repositories are private, SOKAR_DOCS_READ (a token that can read them and nothing else) is
+Reads only. While the repositories are private, PORELO_DOCS_READ (a token that can read them and nothing else) is
 used, given to git through the environment, never on a command line; once they are public it is not needed. A
 repository that cannot be read fails the build, naming it: a site that silently left a part out was published once,
 and it was every part.
@@ -31,11 +31,11 @@ import urllib.request
 
 import yaml
 
-ORG = "sokar-ai"
-SELF = "sokar-ai.github.io"
-PROJECT = "sokar-project"
-SITE_URL = "https://sokar-ai.github.io/"
-PROJECT_DESCRIPTION = "How Sokar is developed as one project over these repositories, and what belongs to all of them"
+ORG = "porelo-ai"
+SELF = "porelo-ai.github.io"
+PROJECT = "porelo-project"
+SITE_URL = "https://porelo-ai.github.io/"
+PROJECT_DESCRIPTION = "How Porelo is developed as one project over these repositories, and what belongs to all of them"
 
 
 def log(message):
@@ -50,7 +50,7 @@ def git_env():
     and GitHub refused every repository with "Duplicate header".
     """
     env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
-    token = os.environ.get("SOKAR_DOCS_READ", "")
+    token = os.environ.get("PORELO_DOCS_READ", "")
     if token:
         basic = base64.b64encode(f"x-access-token:{token}".encode()).decode()
         env.update(GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="http.https://github.com/.extraheader",
@@ -76,7 +76,7 @@ def project_yml(path):
             return yaml.safe_load(file)
     request = urllib.request.Request(f"https://api.github.com/repos/{ORG}/{PROJECT}/contents/project.yml",
                                      headers={"Accept": "application/vnd.github.raw+json"})
-    token = os.environ.get("SOKAR_DOCS_READ", "")
+    token = os.environ.get("PORELO_DOCS_READ", "")
     if token:
         request.add_header("Authorization", f"Bearer {token}")
     with urllib.request.urlopen(request, timeout=30) as response:
@@ -92,7 +92,7 @@ def https(upstream):
 def parts(project):
     """Every repository the project names, in its order, and the project's own repository last.
 
-    Last because it is organizational, of little interest to someone who uses Sokar (2026-10-05); the
+    Last because it is organizational, of little interest to someone who uses Porelo (2026-10-05); the
     menu and the start page follow this order.
     """
     found = []
@@ -102,7 +102,7 @@ def parts(project):
             log(f"skipped {name}: no GitHub upstream in project.yml")
             continue
         found.append((name, url, (repository or {}).get("description", "")))
-    # Not project.description: that says what Sokar is, and beside this repository it read as if it were the box.
+    # Not project.description: that says what Porelo is, and beside this repository it read as if it were the box.
     found.append((PROJECT, f"https://github.com/{ORG}/{PROJECT}.git", PROJECT_DESCRIPTION))
     return [part for part in found if not part[1].endswith(f"/{SELF}.git")]
 
@@ -131,16 +131,16 @@ THEME = {
 }
 
 # The menu: a tab per kind of part, in this order, each repository a section in its tab's sidebar under its label. Here
-# and not in project.yml, which is a Sokar project file with no field for groups. A tab alone in its group shows its
+# and not in project.yml, which is a Porelo project file with no field for groups. A tab alone in its group shows its
 # pages directly, with no section between. A repository with pages that no group names gets a tab of its own after
 # these, so a new one is never lost.
 GROUPS = [
-    ("sokar", [("core", "sokar")]),
+    ("porelo", [("core", "porelo")]),
     ("agents", [("claude", "claude code"), ("pi", "pi"), ("omp", "omp")]),
     ("build readers", [("github", "github"), ("bitbucket", "bitbucket"), ("jenkins", "jenkins")]),
     ("messaging", [("matrix", "matrix"), ("sluice", "sluice")]),
     ("ui", [("frontend", "frontend"), ("intellij", "intellij")]),
-    ("internal", [("buildtools", "buildtools"), (PROJECT, "sokar project")]),
+    ("internal", [("buildtools", "buildtools"), (PROJECT, "porelo project")]),
 ]
 
 
@@ -152,7 +152,7 @@ def grouped(sections):
         built = [(label, sections[name]) for name, label in members if name in sections]
         if not built:
             continue
-        if tab == "sokar":
+        if tab == "porelo":
             nav.append({tab: built[0][1]})
         else:
             nav.append({tab: [{label: section} for label, section in built]})
@@ -291,7 +291,7 @@ def assemble(out, project, local):
         index.write(landing(built, docs))
     with open(os.path.join(docs, "parts.json"), "w", encoding="utf-8") as manifest:
         json.dump(considered, manifest, indent=1)
-    config = {"site_name": "Sokar", "site_url": SITE_URL, "repo_url": f"https://github.com/{ORG}",
+    config = {"site_name": "Porelo", "site_url": SITE_URL, "repo_url": f"https://github.com/{ORG}",
               "docs_dir": "docs", "site_dir": "site", "theme": THEME, "plugins": ["search"],
               "markdown_extensions": ["tables", "admonition", "attr_list", {"toc": {"permalink": True}}],
               # The landing page is the site's root, where the title leads, and no tab of its own.
@@ -306,10 +306,10 @@ def assemble(out, project, local):
 # and the entry appears by itself once the page is pushed.
 WAYS_IN = [
     ("If you have thirty seconds", "The elevator pitch", "core/pitch.md",
-     "what Sokar is, in a few sentences to remember."),
+     "what Porelo is, in a few sentences to remember."),
     ("If you have ten minutes", "How it works", "core/how-it-works.md",
      "the parts, and what happens when a task starts."),
-    ("If you look after security", "Sokar in a company", "core/corporate-security.md",
+    ("If you look after security", "Porelo in a company", "core/corporate-security.md",
      "what a task can reach, what it never holds, and what the host guarantees."),
     ("If you want to build it with us", "Contributing", f"{PROJECT}/contributing.md",
      "how a change gets in, the rules, the licence."),
@@ -326,11 +326,11 @@ def ways_in(docs):
 
 
 def landing(built, docs):
-    lines = ["# Sokar", "",
+    lines = ["# Porelo", "",
              '<img src="images/early-bird.svg" width="350" alt="Early bird - work in progress">', "",
-             "> **Early bird - work in progress.** Sokar is not stable yet: until release 1.0.0, its code, commands",
+             "> **Early bird - work in progress.** Porelo is not stable yet: until release 1.0.0, its code, commands",
              "> and file formats can change without notice.", ""] + ways_in(docs) + [
-             "Sokar runs AI coding agents in containers they cannot leave. This site holds the documentation of",
+             "Porelo runs AI coding agents in containers they cannot leave. This site holds the documentation of",
              "every part of it, each taken from its own repository.", "",
              "| Part | What it is | Taken from |", "|---|---|---|"]
     for part in built:
@@ -342,7 +342,7 @@ def landing(built, docs):
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", required=True, help="the working directory, emptied first")
-    parser.add_argument("--project-yml", help="read this file instead of sokar-project's on GitHub")
+    parser.add_argument("--project-yml", help="read this file instead of porelo-project's on GitHub")
     parser.add_argument("--local", action="append", default=[], metavar="NAME=PATH",
                         help="take a repository from a checkout here instead of GitHub")
     parser.add_argument("--manifest", action="store_true",

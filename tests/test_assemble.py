@@ -24,7 +24,7 @@ class GitTest(unittest.TestCase):
             here = os.getcwd()
             os.chdir(checkout)
             try:
-                with mock.patch.dict(os.environ, {"SOKAR_DOCS_READ": "ours"}):
+                with mock.patch.dict(os.environ, {"PORELO_DOCS_READ": "ours"}):
                     sent = assemble.git("config", "--get-all", HEADER).splitlines()
             finally:
                 os.chdir(here)
@@ -38,19 +38,19 @@ class PartsTest(unittest.TestCase):
         # Decided: the project's own repository is organizational, of little interest to a user.
         project = {"project": {"description": "the project"},
                    "repositories": {
-                       "core": {"upstream": "git@github.com:sokar-ai/sokar.git"},
-                       "frontend": {"upstream": "git@github.com:sokar-ai/sokar-frontend.git"},
-                       "site": {"upstream": "git@github.com:sokar-ai/sokar-ai.github.io.git"},
-                       "buildtools": {"upstream": "git@github.com:sokar-ai/sokar-buildtools.git"}}}
+                       "core": {"upstream": "git@github.com:porelo-ai/porelo.git"},
+                       "frontend": {"upstream": "git@github.com:porelo-ai/porelo-frontend.git"},
+                       "site": {"upstream": "git@github.com:porelo-ai/porelo-ai.github.io.git"},
+                       "buildtools": {"upstream": "git@github.com:porelo-ai/porelo-buildtools.git"}}}
 
         self.assertEqual([name for name, _, _ in assemble.parts(project)],
-                         ["core", "frontend", "buildtools", "sokar-project"])
+                         ["core", "frontend", "buildtools", "porelo-project"])
 
-    def test_the_project_row_says_what_the_repository_holds_not_what_sokar_is(self):
-        # project.description describes Sokar itself; beside the project's repository it read as nonsense.
+    def test_the_project_row_says_what_the_repository_holds_not_what_porelo_is(self):
+        # project.description describes Porelo itself; beside the project's repository it read as nonsense.
         project = {"project": {"description": "A hardened box an agent works in"}, "repositories": {}}
 
-        description = dict((name, text) for name, _, text in assemble.parts(project))["sokar-project"]
+        description = dict((name, text) for name, _, text in assemble.parts(project))["porelo-project"]
 
         self.assertNotIn("hardened box", description)
         self.assertIn("repositories", description)
@@ -63,8 +63,8 @@ class RelinkedTest(unittest.TestCase):
         # from core/how-it-works/images/. MkDocs moves Markdown's links for a page that becomes a directory, not HTML.
         text = '<img align="left" src="images/dummy.svg" alt="a dummy">\n![shown](images/b.svg)\n'
 
-        page = assemble.relinked(text, "/r/doc/how-it-works.md", "/r/doc", "sokar", "0" * 40)
-        index = assemble.relinked(text, "/r/doc/index.md", "/r/doc", "sokar", "0" * 40)
+        page = assemble.relinked(text, "/r/doc/how-it-works.md", "/r/doc", "porelo", "0" * 40)
+        index = assemble.relinked(text, "/r/doc/index.md", "/r/doc", "porelo", "0" * 40)
 
         self.assertIn('src="../images/dummy.svg"', page)
         self.assertIn("](images/b.svg)", page)
@@ -73,7 +73,7 @@ class RelinkedTest(unittest.TestCase):
     def test_an_absolute_or_external_source_stays(self):
         text = '<img src="https://example.org/a.svg"> <img src="/a.svg"> <a href="#top">top</a>'
 
-        self.assertEqual(assemble.relinked(text, "/r/doc/page.md", "/r/doc", "sokar", "0" * 40), text)
+        self.assertEqual(assemble.relinked(text, "/r/doc/page.md", "/r/doc", "porelo", "0" * 40), text)
 
 
 class FetchTest(unittest.TestCase):
@@ -101,8 +101,8 @@ class AssembleTest(unittest.TestCase):
 
     def run_with(self, fetched):
         project = {"repositories": {}}
-        parts = [("sokar-project", "https://github.com/sokar-ai/sokar-project.git", ""),
-                 ("core", "https://github.com/sokar-ai/sokar.git", "")]
+        parts = [("porelo-project", "https://github.com/porelo-ai/porelo-project.git", ""),
+                 ("core", "https://github.com/porelo-ai/porelo.git", "")]
         with tempfile.TemporaryDirectory() as out, \
                 mock.patch.object(assemble, "parts", return_value=parts), \
                 mock.patch.object(assemble, "fetch", side_effect=fetched):
@@ -114,7 +114,7 @@ class AssembleTest(unittest.TestCase):
 
         with self.assertRaises(SystemExit) as stopped:
             self.run_with(unreadable)
-        self.assertIn("sokar-project", str(stopped.exception.code))
+        self.assertIn("porelo-project", str(stopped.exception.code))
         self.assertIn("core", str(stopped.exception.code))
 
     def test_one_repository_that_cannot_be_read_fails_it_too(self):
@@ -129,7 +129,7 @@ class AssembleTest(unittest.TestCase):
         with self.assertRaises(SystemExit) as stopped:
             self.run_with(one_unreadable)
         self.assertIn("core", str(stopped.exception.code))
-        self.assertNotIn("sokar-project", str(stopped.exception.code))
+        self.assertNotIn("porelo-project", str(stopped.exception.code))
 
     def test_the_site_is_built_with_material_tabs_search_and_both_schemes(self):
         def readable(name, url, where):
@@ -139,7 +139,7 @@ class AssembleTest(unittest.TestCase):
             return {"name": name, "ref": "main", "commit": "0" * 40}
 
         project = {"repositories": {}}
-        parts = [("sokar-project", "https://github.com/sokar-ai/sokar-project.git", "")]
+        parts = [("porelo-project", "https://github.com/porelo-ai/porelo-project.git", "")]
         with tempfile.TemporaryDirectory() as out, \
                 mock.patch.object(assemble, "parts", return_value=parts), \
                 mock.patch.object(assemble, "fetch", side_effect=readable):
@@ -162,7 +162,7 @@ class AssembleTest(unittest.TestCase):
             return {"name": name, "ref": "main", "commit": "0" * 40}
 
         project = {"repositories": {}}
-        parts = [("sokar-project", "https://github.com/sokar-ai/sokar-project.git", "")]
+        parts = [("porelo-project", "https://github.com/porelo-ai/porelo-project.git", "")]
         with tempfile.TemporaryDirectory() as out, \
                 mock.patch.object(assemble, "parts", return_value=parts), \
                 mock.patch.object(assemble, "fetch", side_effect=readable):
@@ -172,15 +172,15 @@ class AssembleTest(unittest.TestCase):
             graphic = os.path.join(out, "site", "docs", "images", "early-bird.svg")
             self.assertTrue(os.path.isfile(graphic), "the graphic the home page names is in the site")
 
-        self.assertEqual(home[0], "# Sokar")
+        self.assertEqual(home[0], "# Porelo")
         self.assertEqual(home[2], '<img src="images/early-bird.svg" width="350" alt="Early bird - work in progress">')
-        self.assertEqual(home[4], "> **Early bird - work in progress.** Sokar is not stable yet: until release 1.0.0,"
+        self.assertEqual(home[4], "> **Early bird - work in progress.** Porelo is not stable yet: until release 1.0.0,"
                                   " its code, commands")
         self.assertEqual(home[5], "> and file formats can change without notice.")
 
     def test_the_home_page_offers_a_way_in_for_each_reader_whose_page_is_there(self):
         pages = {"core": ["index.md", "pitch.md", "how-it-works.md", "corporate-security.md"],
-                 "sokar-project": ["index.md"]}
+                 "porelo-project": ["index.md"]}
 
         def readable(name, url, where):
             os.makedirs(os.path.join(where, "doc"))
@@ -189,8 +189,8 @@ class AssembleTest(unittest.TestCase):
                     file.write(f"# {page}\n")
             return {"name": name, "ref": "main", "commit": "0" * 40}
 
-        parts = [("core", "https://github.com/sokar-ai/sokar.git", ""),
-                 ("sokar-project", "https://github.com/sokar-ai/sokar-project.git", "")]
+        parts = [("core", "https://github.com/porelo-ai/porelo.git", ""),
+                 ("porelo-project", "https://github.com/porelo-ai/porelo-project.git", "")]
 
         def home():
             with tempfile.TemporaryDirectory() as out, \
@@ -204,13 +204,13 @@ class AssembleTest(unittest.TestCase):
         self.assertIn("**If you have thirty seconds**", text)
         self.assertIn("[The elevator pitch](core/pitch.md)", text)
         self.assertIn("[How it works](core/how-it-works.md)", text)
-        self.assertIn("[Sokar in a company](core/corporate-security.md)", text)
-        self.assertNotIn("If you want to build it with us", text, "hidden while sokar-project has no contributing page")
+        self.assertIn("[Porelo in a company](core/corporate-security.md)", text)
+        self.assertNotIn("If you want to build it with us", text, "hidden while porelo-project has no contributing page")
         self.assertLess(text.index("Early bird"), text.index("If you have thirty seconds"))
-        self.assertLess(text.index("If you have thirty seconds"), text.index("Sokar runs AI coding agents"))
+        self.assertLess(text.index("If you have thirty seconds"), text.index("Porelo runs AI coding agents"))
 
-        pages["sokar-project"].append("contributing.md")
-        self.assertIn("[Contributing](sokar-project/contributing.md)", home(), "shown once the page is there")
+        pages["porelo-project"].append("contributing.md")
+        self.assertIn("[Contributing](porelo-project/contributing.md)", home(), "shown once the page is there")
 
     def test_every_repository_read_builds(self):
         def readable(name, url, where):
@@ -219,7 +219,7 @@ class AssembleTest(unittest.TestCase):
                 page.write(f"# {name}\n")
             return {"name": name, "ref": "main", "commit": "0" * 40}
 
-        self.assertEqual([part["name"] for part in self.run_with(readable)], ["sokar-project", "core"])
+        self.assertEqual([part["name"] for part in self.run_with(readable)], ["porelo-project", "core"])
 
 
 class MenuTest(unittest.TestCase):
@@ -232,7 +232,7 @@ class MenuTest(unittest.TestCase):
                 page.write(f"# {name}\n")
             return {"name": name, "ref": "main", "commit": "0" * 40}
 
-        parts = [(name, f"https://github.com/sokar-ai/{name}.git", "") for name in names]
+        parts = [(name, f"https://github.com/porelo-ai/{name}.git", "") for name in names]
         with tempfile.TemporaryDirectory() as out, \
                 mock.patch.object(assemble, "parts", return_value=parts), \
                 mock.patch.object(assemble, "fetch", side_effect=readable):
@@ -244,26 +244,26 @@ class MenuTest(unittest.TestCase):
 
     def test_the_menu_is_a_tab_per_kind_of_part_with_each_repository_a_section(self):
         config, _ = self.config(["core", "frontend", "sluice", "matrix", "claude", "pi", "omp", "buildtools", "github",
-                                 "intellij", "sokar-project"])
+                                 "intellij", "porelo-project"])
 
         self.assertEqual(config["nav"], [
-            {"sokar": ["core/index.md"]},
+            {"porelo": ["core/index.md"]},
             {"agents": [{"claude code": ["claude/index.md"]}, {"pi": ["pi/index.md"]}, {"omp": ["omp/index.md"]}]},
             {"build readers": [{"github": ["github/index.md"]}]},
             {"messaging": [{"matrix": ["matrix/index.md"]}, {"sluice": ["sluice/index.md"]}]},
             {"ui": [{"frontend": ["frontend/index.md"]}, {"intellij": ["intellij/index.md"]}]},
-            {"internal": [{"buildtools": ["buildtools/index.md"]}, {"sokar project": ["sokar-project/index.md"]}]},
+            {"internal": [{"buildtools": ["buildtools/index.md"]}, {"porelo project": ["porelo-project/index.md"]}]},
         ])
 
     def test_a_repository_no_group_names_is_a_tab_of_its_own_at_the_end(self):
         config, _ = self.config(["newcomer", "core"])
 
-        self.assertEqual(config["nav"], [{"sokar": ["core/index.md"]}, {"newcomer": ["newcomer/index.md"]}])
+        self.assertEqual(config["nav"], [{"porelo": ["core/index.md"]}, {"newcomer": ["newcomer/index.md"]}])
 
     def test_a_group_with_nothing_built_is_left_out(self):
         config, _ = self.config(["core", "pi"])
 
-        self.assertEqual([next(iter(tab)) for tab in config["nav"]], ["sokar", "agents"])
+        self.assertEqual([next(iter(tab)) for tab in config["nav"]], ["porelo", "agents"])
 
     def test_the_landing_page_is_written_and_has_no_tab(self):
         config, written = self.config(["core"])

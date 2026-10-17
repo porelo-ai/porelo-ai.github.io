@@ -9,12 +9,12 @@ in the left sidebar of its tab, with its own pages beneath:
 
 | Tab | Sections |
 |---|---|
-| `sokar` | the core's own pages, with no section between |
+| `porelo` | the core's own pages, with no section between |
 | `agents` | `claude code`, `pi`, `omp` |
 | `build readers` | `github` |
 | `messaging` | `matrix`, `sluice` |
 | `ui` | `frontend`, `intellij` |
-| `internal` | `buildtools`, `sokar project` |
+| `internal` | `buildtools`, `porelo project` |
 
 - **The landing page** has no tab. The site's title at the top left leads to it, and its ways in still link to their
   pages.
@@ -26,24 +26,24 @@ in the left sidebar of its tab, with its own pages beneath:
 
 Read in today's code:
 
-- `assemble()` builds `nav` as `[{"Sokar": "index.md"}]`, then appends `{name: section}` for every repository with a
-  `doc/`, in the order `parts(project)` gives. That order is `sokar-project`'s `project.yml`, with `sokar-project`
+- `assemble()` builds `nav` as `[{"Porelo": "index.md"}]`, then appends `{name: section}` for every repository with a
+  `doc/`, in the order `parts(project)` gives. That order is `porelo-project`'s `project.yml`, with `porelo-project`
   last.
 - The names are those in `project.yml`: `core`, `claude`, `pi`, `omp`, `github`, `matrix`, `sluice`, `frontend`,
-  `intellij`, `buildtools`, plus `sokar-project`. Each repository's pages are copied under `docs/<name>/`.
+  `intellij`, `buildtools`, plus `porelo-project`. Each repository's pages are copied under `docs/<name>/`.
 - The theme has `navigation.tabs`, `navigation.sections` and `navigation.indexes`. A top-level entry of `nav` is a
   tab, and a list under it shows as sections in the sidebar. Material has no drop-downs in the top bar.
 
 The plan:
 
-- **The mapping in `assemble.py`,** not in `project.yml`: that is a real Sokar project file with no field for groups.
+- **The mapping in `assemble.py`,** not in `project.yml`: that is a real Porelo project file with no field for groups.
   It is an ordered list of tabs. Each tab has a list of `(name in project.yml, label)` pairs:
-  - `sokar`: `core` alone, whose section becomes the tab's own pages with no section level;
+  - `porelo`: `core` alone, whose section becomes the tab's own pages with no section level;
   - `agents`: `claude` as `claude code`, `pi`, `omp`;
   - `build readers`: `github`;
   - `messaging`: `matrix`, `sluice`;
   - `ui`: `frontend`, `intellij`;
-  - `internal`: `buildtools`, `sokar-project` as `sokar project`.
+  - `internal`: `buildtools`, `porelo-project` as `porelo project`.
 
   The Bitbucket and Jenkins readers join `build readers` as `bitbucket` and `jenkins` once they exist.
 - **`grouped(sections)`** takes the per-repository sections as `assemble()` builds them now and returns the `nav`:
@@ -51,7 +51,7 @@ The plan:
   - a tab with no repository is left out;
   - after them, every built repository the mapping does not name, as its own tab, with a log line naming it.
 - **The landing page:**
-  - `{"Sokar": "index.md"}` goes. `index.md` is still written and is the site's root, where the title links.
+  - `{"Porelo": "index.md"}` goes. `index.md` is still written and is the site's root, where the title links.
   - MkDocs reports a page outside `nav` at level INFO by default (`validation.omitted_files`), which `strict` does
     not fail on. The config still sets `not_in_nav: /index.md`, so this does not hang on a default.
   - The ways in and the table of parts keep their links, since the pages' paths (`core/...`) do not change.
@@ -61,7 +61,7 @@ Steps:
 
 1. **Red first,** in `tests/test_assemble.py`:
    - the `nav` of a build with all the repositories has the six tabs in order, their labels, and the core's pages
-     directly under `sokar`;
+     directly under `porelo`;
    - an unnamed repository is a tab at the end;
    - a group with nothing built is left out;
    - `index.md` is not in `nav` and is still written.

@@ -1,4 +1,4 @@
-# Builds https://sokar-ai.github.io from the doc/ of every repository sokar-project's project.yml names, checks it
+# Builds https://porelo-ai.github.io from the doc/ of every repository porelo-project's project.yml names, checks it
 # strict, and publishes it with GitHub Pages once publishing is switched on.
 #
 # What: every repository at its default branch (2026-10-05), not at its newest release.
@@ -9,7 +9,7 @@
 #
 # Publishing is off until the repositories are public (2026-10-04): the site is built and
 # checked from now on, and published only where the repository variable PUBLISH is 'true'. Until then the
-# repositories are read with SOKAR_DOCS_READ, a fine-grained token with Contents: read on them and nothing else;
+# repositories are read with PORELO_DOCS_READ, a fine-grained token with Contents: read on them and nothing else;
 # once they are public the token goes, and so does every line that names it.
 name: Documentation site
 run-name: "${{ github.workflow }} · ${{ github.ref_name }}: ${{ github.event.head_commit.message || github.event.pull_request.title || github.workflow }}"
@@ -56,7 +56,7 @@ jobs:
       - name: What would be taken now
         id: compare
         env:
-          SOKAR_DOCS_READ: ${{ secrets.SOKAR_DOCS_READ }}
+          PORELO_DOCS_READ: ${{ secrets.PORELO_DOCS_READ }}
         run: |
           python build/assemble.py --out "$RUNNER_TEMP/unused" --manifest > now.json
           echo "key=site-$(sha256sum now.json | cut -c1-16)" >> "$GITHUB_OUTPUT"
@@ -100,9 +100,9 @@ jobs:
       - name: The pinned tools, every package by its hash
         run: python -m pip install --no-deps --require-hashes -r build/requirements.txt
 
-      - name: Every repository's doc/, in sokar-project's order
+      - name: Every repository's doc/, in porelo-project's order
         env:
-          SOKAR_DOCS_READ: ${{ secrets.SOKAR_DOCS_READ }}
+          PORELO_DOCS_READ: ${{ secrets.PORELO_DOCS_READ }}
         run: python build/assemble.py --out "$RUNNER_TEMP/site"
 
       - name: The site, strict
