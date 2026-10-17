@@ -9,13 +9,8 @@ left out.
 
 | # | Size | Blocked by | What it covers |
 |---|---|---|---|
-| <a id="si02"></a>[SI02](SI02-The-Menu-Grouped-By-What-A-Part-Is.md) | S | - | Six tabs - porelo, agents, build readers, messaging, ui, internal - with each repository a section beneath; a repository not mapped gets a tab of its own; the landing page leaves the menu. |
-
-## Implementing
-
-| # | Size | Blocked by | What it covers |
-|---|---|---|---|
 | <a id="si03"></a>[SI03](SI03-Sokar-Renamed-Porelo-Here.md) | S | - | The site renamed by script and served from `porelo-ai.github.io`; the repository and the secret `SOKAR_DOCS_READ` renamed at GitHub first; red first a test refusing the old word. |
+| <a id="si02"></a>[SI02](SI02-The-Menu-Grouped-By-What-A-Part-Is.md) | S | - | Six tabs - porelo, agents, build readers, messaging, ui, internal - with each repository a section beneath; a repository not mapped gets a tab of its own; the landing page leaves the menu. |
 
 ## Estimated
 
