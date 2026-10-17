@@ -1,8 +1,9 @@
 # SI04 — The Site Looks Like Porelo's Website
 
-**Status:** Accepted.
+**Status:** Estimated.
 **Size:** S - one stylesheet and the logo copied in by `build/assemble.py`, the theme's palette, fonts and logo in its
-configuration, and tests of what it writes; built after the rename window.
+configuration, one check of the built pages in the site workflow, and tests of what it writes; no contract another
+repository reads.
 
 **What must be true.** The documentation site looks like Porelo's website (porelo.ai), so that a reader moving from
 the website to the documentation sees one product: the same dark colours, accents, fonts, logo and surfaces.
@@ -43,8 +44,9 @@ As the website's stylesheet defines it:
 
 ## Plan
 
-Read in today's code: `assemble.py` writes the site's `mkdocs.yml` from `THEME`. That holds Material with two
-palettes, light (`default`) and dark (`slate`), and a toggle between them. It carries no stylesheet of its own and no
+Read in today's code (2026-10-17): `assemble.py` writes the site's `mkdocs.yml` from `THEME` (`build/assemble.py:121`),
+in `assemble()` (`:295`). `THEME` holds Material with two palettes, light (`default`) and dark (`slate`), and a toggle
+between them. It carries no stylesheet of its own and no
 logo. Every page requests `fonts.googleapis.com` today (Roboto and Roboto Mono): they are the theme's default
 fonts, which it loads unless told not to.
 
@@ -60,7 +62,10 @@ fonts, which it loads unless told not to.
   styles the header, tabs, sidebar and search as glass, code blocks as dashed cards, and focus, links and the grid as
   above.
 - **The logo** in this repository as `build/logo.svg`, copied beside the stylesheet: the site takes it from no other
-  repository.
+  repository. Both are copied in `assemble()` as `EARLY_BIRD` is today (`:245`).
+- **The check of the built pages**, `build/same_origin.py`: reads every `.html` under the built site and fails naming
+  each `src` or `href` that leaves the site, except `<a href>`. It runs in `.github/workflows/site.yml` right after the
+  strict build (`:109`).
 - If [SI01](README.md#si01) (Zensical) comes first, the same stylesheet carries over: it reads the same variables.
 
 **Contrast, computed from the values above** (WCAG ratio, against `--bg` / `--bg-2`): text 17.3 / 16.6, muted
@@ -69,6 +74,9 @@ text (4.5).
 
 ## How it is tested
 
+- **Red first:** `test_the_site_is_built_with_material_tabs_search_and_both_schemes` (`tests/test_assemble.py:134`)
+  asserts two schemes today; it is changed to assert one `slate` palette with no toggle, `font: false` and
+  `extra_css`, and seen red before `THEME` changes.
 - **Tests of what `assemble.py` writes:**
   - one palette and no toggle;
   - `font: false`;
@@ -76,8 +84,9 @@ text (4.5).
   - the stylesheet and the logo present in `docs/`, the logo at the sha256 above.
 - **A test of the stylesheet:** every colour pair it sets for text on a background, computed against the background,
   passes WCAG AA.
-- **No other origin:** a check in the site workflow, after the strict build, refuses any `src` or `href` in the built
-  pages that leaves the site, except links a reader follows (`<a href>`).
+- **No other origin:** `build/same_origin.py`, run in the site workflow after the strict build, refuses any `src` or
+  `href` in the built pages that leaves the site, except links a reader follows (`<a href>`). Its own test reads two
+  small pages, one with a stylesheet from another origin (red) and one with only an outside `<a href>` (green).
 - **By eye:** the built site at a phone width and a desktop width, every tab.
 - The existing tests and the strict build stay green.
 

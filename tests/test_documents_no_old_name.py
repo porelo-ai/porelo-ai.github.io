@@ -5,19 +5,12 @@ that is no longer there. The old name is spelled here in two pieces, so that thi
 """
 
 import os
-import re
 import subprocess
 import unittest
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 
 OLD = "so" + "kar"
-
-# Paths that keep the old name, name and text: the issue of the rename.
-KEPT_PATHS = re.compile(r"issues/SI03-[^/]+\.md")  # not-a-citation: the issue's own file
-
-# Lines that keep it: the rename's own row in the issue index.
-KEPT_LINES = re.compile(r'.*<a id="si03"></a>.*')
 
 
 def tracked():
@@ -40,12 +33,10 @@ class NoOldNameTest(unittest.TestCase):
         files = tracked()
         found = []
         for name in files:
-            if KEPT_PATHS.fullmatch(name):
-                continue
             if OLD in name.lower():
                 found.append(f"{name}: its path")
             for number, line in enumerate(lines(name), 1):
-                if not KEPT_LINES.fullmatch(line) and OLD in line.lower():
+                if OLD in line.lower():
                     found.append(f"{name}:{number}: {line.strip()}")
 
         # A guard that reads nothing passes forever: assert what it read, then what it checks.
