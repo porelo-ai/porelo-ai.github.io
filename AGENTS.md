@@ -15,7 +15,7 @@ How the site of all Porelo documentation is put together.
 
 ## Shared across the Porelo repositories
 
-> **BEGIN Shared Area** · sha256 `8f49d85552af3cd1` · changed 2026-10-16T16:20Z
+> **BEGIN Shared Area** · sha256 `fef7d153a0bcb86d` · changed 2026-10-18T04:33Z
 
 Identical in every repository `project.yml` names but `porelo-parent`, which holds only the parent pom
 and no `AGENTS.md`. The markers carry the SHA-256 of the lines between them (the first 16 hex digits)
@@ -67,9 +67,10 @@ and the UTC time that text last changed; change it in the channel first, never i
   what they share, not each of them.
 - **No commit message, changelog entry, issue or document says who asked for a change or who made it**
   - no "as the operator chose", no agent's name; it says what changed and why.
-- **A change to what ships or builds gets its changelog entry in the same commit**, under
-  `[Unreleased]` and the heading of its kind. A generated changelog is changed only through its
-  sources, never by hand.
+- **A change to what ships or to what a build produces gets its changelog entry in the same commit**,
+  under `[Unreleased]` and the heading of its kind. A change only to the CI's own workflows (an action's
+  pin, a schedule, a job's steps) gets none: the changelog is for the people who use what ships. A
+  generated changelog is changed only through its sources, never by hand.
 
 ### Issues
 
@@ -185,8 +186,19 @@ and the UTC time that text last changed; change it in the channel first, never i
 - **A test that waits on an agent, a model or any paid service fails fast on a loop**: it stops as
   soon as the same failure repeats, instead of waiting out its time, and names what repeated. A run
   seen looping is reported at once, so the operator can cancel it.
-- **A defect is fixed only after a unit or integration test reproduces it.** The test fails first,
-  then the fix makes it pass.
+- **A test guards what can do harm, not everything that can be wrong.** Tests go where a fault costs
+  something: a secret or a credential that leaks, a check that can be passed around, data lost or
+  written twice, work that leaves without review, a command that does the wrong thing, a contract
+  another repository reads, a crash or a hang. There they are thorough: the failure paths too, red
+  first.
+- **What only reads wrong is fixed, not guarded:** a wording, a label, a colour, a layout, the order
+  of an output, a translation, formatting the formatter already checks. Nobody writes a test for it.
+  A test that holds a text verbatim is deleted when the text changes, not changed with it.
+- **Before a test is written, it names the harm it prevents.** If it cannot, it is not written. A
+  finding of a reading that names none is fixed without a test.
+- **A defect that can do harm is fixed only after a unit or integration test reproduces it.** The
+  test fails first, then the fix makes it pass; the rules on tests below hold within the three
+  above.
 - **A test is trusted only once it has been seen to fail**: break the code on purpose, watch the
   test go red, and restore it. A break that does not compile proves nothing.
 - **A guard asserts what its reference set is, not only that it has entries**: an empty set, one
@@ -281,9 +293,10 @@ and the UTC time that text last changed; change it in the channel first, never i
 - **A comment says why, never what, in one line where it can.** Reasoning that does not fit goes into
   documentation or a decision, and a small named method is preferred over a comment explaining a
   block.
-- **Dot files are not committed.** `.gitignore` ignores `.*` and excepts only what a build needs -
-  `.github`, `.gitignore` and `.gitkeep`, in a Maven repository also `.mvn` - and what is true of one
-  machine goes into `.AGENTS.md`.
+- **Dot files are not committed.** `.gitignore` ignores `.*` and excepts only what a build or the
+  shared code style needs - `.github`, `.gitignore`, `.gitkeep`, `.editorconfig` and
+  `.git-blame-ignore-revs`, in a Maven repository also `.mvn` - and what is true of one machine goes
+  into `.AGENTS.md`.
 - **Maven is the build system: a Java repository builds, checks and tests with Java and Maven only.**
   Another build tool only where the platform a repository builds for supports no other - an IntelliJ
   plugin, since JetBrains supports only Gradle - named with the reason in its repository's own part. A
@@ -313,10 +326,13 @@ and the UTC time that text last changed; change it in the channel first, never i
 - **Java code carries brief Javadoc on every public type and method; a test method's name reads as a
   sentence (never `testXxx`) and an assertion states its reason (`.as(...)`).** Every build call in
   CI names its repositories in the repository itself (Maven: `-s settings.xml`).
-- **Everything a build runs is pinned and moved only by review**: actions by commit with the version
-  beside it, the JDK (from `porelo-machines jdk --github`), the build tool's wrapper (Maven, Gradle) and
-  images by version and digest, updated by Dependabot weekly, in one group, after three days.
-  `porelo-release check-actions` enforces it.
+- **Everything a build runs is pinned**: actions by commit with the version beside it, the JDK (from
+  `porelo-machines jdk --github`), the build tool's wrapper (Maven, Gradle) and images by version and
+  digest. `porelo-release check-actions` enforces it. Dependabot moves only the actions, weekly, in one
+  group, after three days; a patch or minor move is merged on its own once the pull request's light
+  check (no rented machine) passes, a major one by the operator. Everything else is moved by the
+  repository's agent.
+- **A push that changes only `.github/` starts no Build**; the next push with content builds with it.
 - **While it is developed, a repository may build against another Porelo repository's snapshot from
   Sonatype**, and its build may fail for a while when that snapshot moves; a release depends only on
   releases, which the release build checks.
@@ -328,4 +344,4 @@ and the UTC time that text last changed; change it in the channel first, never i
 - **Every native executable is built with `-march=x86-64`**, so it starts on any x86-64 CPU, and the
   build checks each executable for exactly that instruction set.
 
-> **END Shared Area** · sha256 `8f49d85552af3cd1`
+> **END Shared Area** · sha256 `fef7d153a0bcb86d`
