@@ -53,5 +53,9 @@ It reads the other repositories and writes this repository's Pages; nothing else
 - **An hourly run builds only when something moved:** the last build's manifest is kept in the Actions cache, and
   a run that finds the same one has nothing to do.
 
+## Contributing
+
+[Contributing](CONTRIBUTING.md), and [reporting a vulnerability](SECURITY.md).
+
 ## Licence
 GNU General Public License v3.0 or later — see [LICENSE](LICENSE).
