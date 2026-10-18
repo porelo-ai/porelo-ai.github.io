@@ -140,6 +140,7 @@ GROUPS = [
     ("build readers", [("github", "github"), ("bitbucket", "bitbucket"), ("jenkins", "jenkins")]),
     ("messaging", [("matrix", "matrix"), ("sluice", "sluice")]),
     ("ui", [("frontend", "frontend"), ("intellij", "intellij")]),
+    ("host", [("host", "host")]),
     ("internal", [("buildtools", "buildtools"), (PROJECT, "porelo project")]),
 ]
 
