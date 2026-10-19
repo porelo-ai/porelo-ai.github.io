@@ -20,6 +20,8 @@ on:
     workflow_dispatch:
     push:
         branches: [main]
+        # The image a Porelo task builds in: it changes nothing on the site.
+        paths-ignore: ['porelo.yml']
 
 permissions:
     contents: read
