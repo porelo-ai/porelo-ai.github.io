@@ -13,6 +13,12 @@ left out.
 | <a id="si01"></a>[SI01](SI01-The-Site-Moves-To-Zensical.md) | M | - | The site moves to Zensical by 2026-11-05, whatever its version, pinned by hash and compared page by page. |
 | <a id="si04"></a>[SI04](SI04-The-Site-Looks-Like-Porelos-Website.md) | S | - | The documentation site in the website's look: dark only, its colours, fonts, glass surfaces and logo, the theme's navigation kept, nothing loaded from another origin; built after the rename window. |
 
+## Idea
+
+| # | Size | Blocked by | What it covers |
+|---|---|---|---|
+| <a id="si05"></a>[SI05](SI05-The-Site-Builds-In-A-Porelo-Task.md) | - | `porelo` [B241](https://github.com/porelo-ai/porelo/blob/main/issues/base/README.md#b241) | The site's check green in a Porelo task: `porelo.yml` without `COPY`, its Debian base built once porelo can. |
+
 ## Finished
 
 | # | Title | What was built |
