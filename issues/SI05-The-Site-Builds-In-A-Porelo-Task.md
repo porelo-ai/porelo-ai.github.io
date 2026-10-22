@@ -1,6 +1,6 @@
 # SI05 — The Site Builds In A Porelo Task
 
-**Status:** Idea; blocked by porelo [B241](https://github.com/porelo-ai/porelo/blob/main/issues/base/README.md#b241).
+**Status:** Implementing: `porelo.yml` has no `COPY`; the run in a task follows.
 
 **What must be true.** The site's whole check runs green inside a Porelo task, in the image its `porelo.yml` names.
 

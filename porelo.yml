@@ -1,7 +1,7 @@
 # The image a Porelo task builds this repository in: the site's tests, assemble.py and mkdocs, and
 # the checks in build/.
-# Tools only, never a rule: egress, limits and the class stay the project's. A draft: nothing reads this file
-# until Porelo reads a repository's own image settings, and the acceptance of that work reads it then.
+# Tools only, never a rule: egress, limits and the class stay the project's. Porelo reads it as this repository's
+# image at a task's start.
 image:
     # Python 3.13, as site.yml's setup-python takes it: Ubuntu 24.04's is 3.12, which the hashed wheels in
     # build/requirements.txt are not made for. The digest is the tag's on 2026-10-19.
@@ -29,9 +29,8 @@ image:
             && echo "d9fbb2a9c33d13f47e7618cf362a914d029d02a6df124064fff04fd688a745ea  /usr/local/bin/shfmt" \
                 | sha256sum -c - \
             && chmod 0755 /usr/local/bin/shfmt
-        # The site's own tools, each by its hash, exactly as site.yml installs them.
-        COPY build/requirements.txt /tmp/requirements.txt
-        RUN python -m pip install --no-cache-dir --no-deps --require-hashes -r /tmp/requirements.txt \
-            && rm /tmp/requirements.txt
+        # The site's own tools are not in the image: it is built in Porelo's build directory, not in this
+        # repository, so build/requirements.txt is not in its context. The task installs them as site.yml does,
+        # each by its hash: python -m pip install --no-deps --require-hashes -r build/requirements.txt
     env:
         JAVA_HOME: /opt/graalvm
