@@ -20,8 +20,9 @@ on:
     workflow_dispatch:
     push:
         branches: [main]
-        # The image a Porelo task builds in: it changes nothing on the site.
-        paths-ignore: ['porelo.yml']
+        # The image a Porelo task builds in changes nothing on the site. Workflows alone build nothing either: an
+        # action's move is checked by its pull request, and the next push with content builds with it.
+        paths-ignore: ['porelo.yml', '.github/**']
 
 permissions:
     contents: read
