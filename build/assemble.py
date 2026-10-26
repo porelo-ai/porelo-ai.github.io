@@ -136,7 +136,7 @@ THEME = {
 # these, so a new one is never lost.
 GROUPS = [
     ("porelo", [("core", "porelo")]),
-    ("agents", [("claude", "claude code"), ("pi", "pi"), ("omp", "omp")]),
+    ("agents", [("claude", "claude code"), ("pi", "pi"), ("omp", "omp"), ("codex", "codex"), ("agy", "agy")]),
     ("build readers", [("github", "github"), ("bitbucket", "bitbucket"), ("jenkins", "jenkins")]),
     ("messaging", [("matrix", "matrix"), ("sluice", "sluice")]),
     ("ui", [("frontend", "frontend"), ("intellij", "intellij")]),
