@@ -35,15 +35,18 @@ concurrency:
 jobs:
     check:
         runs-on: ubuntu-24.04
-        timeout-minutes: 5
+        # A push also fetches the pinned GraalVM and the shared build tools for its commit messages.
+        timeout-minutes: 10
         outputs:
             changed: ${{ steps.decide.outputs.changed }}
             key: ${{ steps.compare.outputs.key }}
         steps:
+            # Every commit, so the pushed range can be read.
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   # Its credential would be sent beside the read token, and GitHub refuses two Authorization headers.
                   persist-credentials: false
+                  fetch-depth: 0
 
             - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
               with:
@@ -54,6 +57,35 @@ jobs:
 
             - name: The collector's tests
               run: python -m unittest discover -s tests
+
+            # As the Shared rules check takes them: the runner's Java 25 runs porelo-machines once, which installs the
+            # pinned GraalVM, checked against its digest, as JAVA_HOME for the step after it.
+            - name: The shared build tools and the pinned GraalVM
+              if: github.event_name == 'push'
+              run: |
+                  set -eu
+                  [ -n "${JAVA_HOME_25_X64:-}" ] || { echo "::error::this runner has no Java 25 (JAVA_HOME_25_X64)"; exit 1; }
+                  export JAVA_HOME="$JAVA_HOME_25_X64"
+                  ./mvnw -B -q -f build/pom.xml dependency:build-classpath -Dmdep.outputFile="$RUNNER_TEMP/tools-cp.txt"
+                  "$JAVA_HOME/bin/java" -cp "$(cat "$RUNNER_TEMP/tools-cp.txt")" org.fuin.porelo.machines.Main jdk --github
+
+            # A direct push to main never meets the pull request's check, so the push's own range is read here. Only main
+            # is pushed to start this workflow, and main itself cannot be pushed over.
+            - name: The pushed commits' messages
+              if: github.event_name == 'push'
+              env:
+                  PUSH_BEFORE: ${{ github.event.before }}
+              run: |
+                  set -eu
+                  case "$PUSH_BEFORE" in
+                      '') echo "::error::the push names no commit it started from"; exit 1 ;;
+                  esac
+                  if ! git cat-file -e "$PUSH_BEFORE^{commit}" 2>/dev/null; then
+                      echo "::error::main moved from $PUSH_BEFORE, a commit this checkout does not hold"
+                      exit 1
+                  fi
+                  "$JAVA_HOME/bin/java" -cp "$(cat "$RUNNER_TEMP/tools-cp.txt")" org.fuin.porelo.release.Main \
+                      check-commits "$PUSH_BEFORE..$GITHUB_SHA"
 
             - name: What would be taken now
               id: compare
