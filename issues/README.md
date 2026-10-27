@@ -12,6 +12,12 @@ left out.
 |---|---|---|---|
 | <a id="si05"></a>[SI05](SI05-The-Site-Builds-In-A-Porelo-Task.md) | - | - | The site's check green in a Porelo task: `porelo.yml` without `COPY`, its Debian base built once porelo can. |
 
+## Idea
+
+| # | Size | Blocked by | What it covers |
+|---|---|---|---|
+| <a id="si06"></a>[SI06](SI06-The-Sites-Agent-Works-In-A-Porelo-Task.md) | - | [SI05](README.md#si05) | The site's agent works in a Porelo task on the move's host, pushes to its Forgejo, whose build runs with the Pages deployment switched off by a variable, and talks in the room |
+
 ## Estimated
 
 | # | Size | Blocked by | What it covers |
