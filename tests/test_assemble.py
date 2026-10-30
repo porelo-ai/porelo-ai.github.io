@@ -154,30 +154,6 @@ class AssembleTest(unittest.TestCase):
         self.assertTrue(all("prefers-color-scheme" in scheme["media"] for scheme in theme["palette"]))
         self.assertIn("search", config["plugins"])
 
-    def test_the_home_page_opens_with_the_early_bird_and_its_note(self):
-        def readable(name, url, where):
-            os.makedirs(os.path.join(where, "doc"))
-            with open(os.path.join(where, "doc", "index.md"), "w", encoding="utf-8") as page:
-                page.write(f"# {name}\n")
-            return {"name": name, "ref": "main", "commit": "0" * 40}
-
-        project = {"repositories": {}}
-        parts = [("porelo-project", "https://github.com/porelo-ai/porelo-project.git", "")]
-        with tempfile.TemporaryDirectory() as out, \
-                mock.patch.object(assemble, "parts", return_value=parts), \
-                mock.patch.object(assemble, "fetch", side_effect=readable):
-            assemble.assemble(os.path.join(out, "site"), project, {})
-            with open(os.path.join(out, "site", "docs", "index.md"), encoding="utf-8") as file:
-                home = file.read().split("\n")
-            graphic = os.path.join(out, "site", "docs", "images", "early-bird.svg")
-            self.assertTrue(os.path.isfile(graphic), "the graphic the home page names is in the site")
-
-        self.assertEqual(home[0], "# Porelo")
-        self.assertEqual(home[2], '<img src="images/early-bird.svg" width="350" alt="Early bird - work in progress">')
-        self.assertEqual(home[4], "> **Early bird - work in progress.** Porelo is not stable yet: until release 1.0.0,"
-                                  " its code, commands")
-        self.assertEqual(home[5], "> and file formats can change without notice.")
-
     def test_the_home_page_offers_a_way_in_for_each_reader_whose_page_is_there(self):
         pages = {"core": ["index.md", "pitch.md", "how-it-works.md", "corporate-security.md"],
                  "porelo-project": ["index.md"]}
@@ -206,7 +182,7 @@ class AssembleTest(unittest.TestCase):
         self.assertIn("[How it works](core/how-it-works.md)", text)
         self.assertIn("[Porelo in a company](core/corporate-security.md)", text)
         self.assertNotIn("If you want to build it with us", text, "hidden while porelo-project has no contributing page")
-        self.assertLess(text.index("Early bird"), text.index("If you have thirty seconds"))
+        self.assertLess(text.index("Crazy chicken"), text.index("If you have thirty seconds"))
         self.assertLess(text.index("If you have thirty seconds"), text.index("Porelo runs AI coding agents"))
 
         pages["porelo-project"].append("contributing.md")

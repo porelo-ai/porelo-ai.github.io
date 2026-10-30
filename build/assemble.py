@@ -167,8 +167,8 @@ def grouped(sections):
 # What a page shows besides its text. Anything else in doc/ - a walk's JSON, a fixture - is not for the site.
 ASSETS = (".png", ".svg", ".jpg", ".jpeg", ".gif", ".webp")
 
-# The early-bird graphic the home page shows, kept here rather than taken from a repository the site reads.
-EARLY_BIRD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "doc", "images", "early-bird.svg")
+# The maturity graphic the home page shows, kept here rather than taken from a repository the site reads.
+MATURITY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "doc", "images", "crazy-chicken.svg")
 
 LINK = re.compile(r"(\]\()([^)\s]+)(\))")
 
@@ -243,7 +243,7 @@ def assemble(out, project, local):
     docs = os.path.join(out, "docs")
     shutil.rmtree(out, ignore_errors=True)
     os.makedirs(os.path.join(docs, "images"))
-    shutil.copyfile(EARLY_BIRD, os.path.join(docs, "images", "early-bird.svg"))
+    shutil.copyfile(MATURITY, os.path.join(docs, "images", "crazy-chicken.svg"))
     # Every repository read, with or without doc/: what an hourly run compares, so one with nothing to show does not
     # look changed at every hour.
     built, considered, unread, sections = [], [], [], {}
@@ -302,7 +302,7 @@ def assemble(out, project, local):
     return built
 
 
-# A way in for each kind of reader, under the early bird (approved 2026-10-09). An entry shows only
+# A way in for each kind of reader, under the maturity graphic (approved 2026-10-09). An entry shows only
 # when its page is among the parts taken: a link to a page a repository does not have yet would fail the strict build,
 # and the entry appears by itself once the page is pushed.
 WAYS_IN = [
@@ -328,9 +328,9 @@ def ways_in(docs):
 
 def landing(built, docs):
     lines = ["# Porelo", "",
-             '<img src="images/early-bird.svg" width="350" alt="Early bird - work in progress">', "",
-             "> **Early bird - work in progress.** Porelo is not stable yet: until release 1.0.0, its code, commands",
-             "> and file formats can change without notice.", ""] + ways_in(docs) + [
+             '<img src="images/crazy-chicken.svg" width="350" alt="Crazy chicken - just hatched">', "",
+             "> **Crazy chicken - just hatched.** Interfaces, formats and even the purpose may change any day. Use it",
+             "> only to try ideas, never to build on.", ""] + ways_in(docs) + [
              "Porelo runs AI coding agents in containers they cannot leave. This site holds the documentation of",
              "every part of it, each taken from its own repository.", "",
              "| Part | What it is | Taken from |", "|---|---|---|"]

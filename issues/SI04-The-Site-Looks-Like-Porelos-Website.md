@@ -62,7 +62,7 @@ fonts, which it loads unless told not to.
   styles the header, tabs, sidebar and search as glass, code blocks as dashed cards, and focus, links and the grid as
   above.
 - **The logo** in this repository as `build/logo.svg`, copied beside the stylesheet: the site takes it from no other
-  repository. Both are copied in `assemble()` as `EARLY_BIRD` is today (`:246`).
+  repository. Both are copied in `assemble()` as `MATURITY` is today (`:246`).
 - **The check of the built pages**, `build/same_origin.py`: reads every `.html` under the built site and fails naming
   each `src` or `href` that leaves the site, except `<a href>`. It runs in `.github/workflows/site.yml` right after the
   strict build (`:143`).
