@@ -197,6 +197,20 @@ class AssembleTest(unittest.TestCase):
 
         self.assertEqual([part["name"] for part in self.run_with(readable)], ["porelo-project", "core"])
 
+    def test_a_repository_whose_doc_holds_only_images_is_not_a_section(self):
+        # Its README's maturity graphic lives in doc/images; as a section it would be a menu entry and a home page row
+        # that lead nowhere.
+        def readable(name, url, where):
+            os.makedirs(os.path.join(where, "doc", "images"))
+            if name == "core":
+                with open(os.path.join(where, "doc", "index.md"), "w", encoding="utf-8") as page:
+                    page.write(f"# {name}\n")
+            with open(os.path.join(where, "doc", "images", "crazy-chicken.svg"), "w", encoding="utf-8") as image:
+                image.write("<svg/>")
+            return {"name": name, "ref": "main", "commit": "0" * 40}
+
+        self.assertEqual([part["name"] for part in self.run_with(readable)], ["core"])
+
 
 class MenuTest(unittest.TestCase):
 

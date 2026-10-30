@@ -269,6 +269,9 @@ def assemble(out, project, local):
         if not os.path.isdir(doc):
             log(f"skipped {name}: no doc/ at {taken['ref']}")
             continue
+        if not any(file.endswith(".md") for _, _, files in os.walk(doc) for file in files):
+            log(f"skipped {name}: no page in doc/ at {taken['ref']}")
+            continue
         repository = url.rsplit("/", 1)[1].removesuffix(".git")
         for root, _, files in os.walk(doc):
             for file in files:
