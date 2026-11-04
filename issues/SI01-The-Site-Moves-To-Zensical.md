@@ -5,8 +5,9 @@
 pages; the collector (`build/assemble.py`) keeps writing a `mkdocs.yml`, which the successor reads.
 
 **What must be true.** The site is built by a generator its makers maintain: Zensical, the successor of Material for
-MkDocs, by 2026-11-05, when Material's promised support ends, whatever Zensical's version is then (decided
-2026-10-11).
+MkDocs, whatever Zensical's version is then. The move comes after the operator's test now under way (decided
+2026-11-04, replacing the date 2026-11-05 decided 2026-10-11). Material's fixes are promised only to that date; until
+the move the builds keep working on the pinned versions.
 
 ## Why
 
