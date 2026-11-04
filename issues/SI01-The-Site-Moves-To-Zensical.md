@@ -19,9 +19,9 @@ carry over; it was at 0.0.68 on 2026-10-05, releasing every few days.
 
 - `build/requirements.txt`: the successor and its dependencies, pinned with `--hash` as today; `mkdocs`,
   `mkdocs-material` and what only they need taken out.
-- `.github/workflows/site.yml:109`: the build step runs the successor's build command on the same
+- `.github/workflows/site.yml:143`: the build step runs the successor's build command on the same
   `$RUNNER_TEMP/site/mkdocs.yml` instead of `mkdocs build --strict`, with its strict mode if it has one.
-- `build/assemble.py` stays: it writes the `mkdocs.yml` (`:265`) the successor reads; only a key the successor does not
+- `build/assemble.py` stays: it writes the `mkdocs.yml` (`:303`) the successor reads; only a key the successor does not
   take is changed there.
 - Red first: both builds of the same collected tree side by side - the Agents table, a long page of `core` and the tabs
   - a page cut off or missing in the new build is the failing case; the collector's tests (`tests/`) stay green.

@@ -44,8 +44,8 @@ As the website's stylesheet defines it:
 
 ## Plan
 
-Read in today's code (2026-10-17): `assemble.py` writes the site's `mkdocs.yml` from `THEME` (`build/assemble.py:121`),
-in `assemble()` (`:295`). `THEME` holds Material with two palettes, light (`default`) and dark (`slate`), and a toggle
+Read in the code on 2026-11-04: `assemble.py` writes the site's `mkdocs.yml` from `THEME` (`build/assemble.py:121`),
+in `assemble()` (`:242`). `THEME` holds Material with two palettes, light (`default`) and dark (`slate`), and a toggle
 between them. It carries no stylesheet of its own and no
 logo. Every page requests `fonts.googleapis.com` today (Roboto and Roboto Mono): they are the theme's default
 fonts, which it loads unless told not to.
@@ -62,10 +62,10 @@ fonts, which it loads unless told not to.
   styles the header, tabs, sidebar and search as glass, code blocks as dashed cards, and focus, links and the grid as
   above.
 - **The logo** in this repository as `build/logo.svg`, copied beside the stylesheet: the site takes it from no other
-  repository. Both are copied in `assemble()` as `EARLY_BIRD` is today (`:245`).
+  repository. Both are copied in `assemble()` as `EARLY_BIRD` is today (`:246`).
 - **The check of the built pages**, `build/same_origin.py`: reads every `.html` under the built site and fails naming
   each `src` or `href` that leaves the site, except `<a href>`. It runs in `.github/workflows/site.yml` right after the
-  strict build (`:109`).
+  strict build (`:143`).
 - If [SI01](README.md#si01) (Zensical) comes first, the same stylesheet carries over: it reads the same variables.
 
 **Contrast, computed from the values above** (WCAG ratio, against `--bg` / `--bg-2`): text 17.3 / 16.6, muted
