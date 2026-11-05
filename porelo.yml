@@ -5,8 +5,8 @@
 image:
     # Python 3.13, as site.yml's setup-python takes it: Ubuntu 24.04's is 3.12, which the hashed wheels in
     # build/requirements.txt are not made for. The digest is the tag's on 2026-10-19.
-    base_image: "python:3.13-slim@sha256:70729b46c69b4f1e97c4822c1af3df53a1476cf5ddc6c087c0c10bc3a5678c2f"
-    snippet: |
+    from: "python:3.13-slim@sha256:70729b46c69b4f1e97c4822c1af3df53a1476cf5ddc6c087c0c10bc3a5678c2f"
+    run: |
         # From the distribution's own archive, by name, at what the pinned base image's archive serves.
         RUN apt-get update -qq \
             && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
