@@ -1,6 +1,20 @@
 # SI06 — The Site's Agent Works In A Porelo Task
 
-**Status:** Idea; blocked by [SI05](README.md#si05).
+```json
+{
+  "$schema": "issue-1.json",
+  "id": "SI06",
+  "title": "The Site's Agent Works In A Porelo Task",
+  "state": "Idea",
+  "size": "-",
+  "priority": "Medium",
+  "rank": 1,
+  "blockedBy": ["SI05"],
+  "covers": "The site's agent works in a Porelo task on the move's host as `Agent Docsite` and talks in the room; its build's Pages upload and its reading of GitHub are first switched by variables on both forges"
+}
+```
+
+**How it stands.** Blocked by [SI05](README.md#si05).
 
 **What must be true.** porelo-ai.github.io's agent works in a Porelo task on the move's host, as the project's procedure for an agent's
 move lays out, and takes this issue to

@@ -1,8 +1,20 @@
 # SI01 — The Site Moves To Zensical
 
-**Status:** Estimated.
-**Size:** M - the requirements with their hashes, the workflow's build step and a side-by-side check of the rendered
-pages; the collector (`build/assemble.py`) keeps writing a `mkdocs.yml`, which the successor reads.
+```json
+{
+  "$schema": "issue-1.json",
+  "id": "SI01",
+  "title": "The Site Moves To Zensical",
+  "state": "Estimated",
+  "size": "M",
+  "priority": "Medium",
+  "rank": 1,
+  "blockedBy": [],
+  "covers": "The site moves to Zensical after the operator's test now under way, whatever its version, pinned by hash and compared page by page."
+}
+```
+
+**Why this size.** the requirements with their hashes, the workflow's build step and a side-by-side check of the rendered pages; the collector (`build/assemble.py`) keeps writing a `mkdocs.yml`, which the successor reads.
 
 **What must be true.** The site is built by a generator its makers maintain: Zensical, the successor of Material for
 MkDocs, whatever Zensical's version is then. The move comes after the operator's test now under way (decided

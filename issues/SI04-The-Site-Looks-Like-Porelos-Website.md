@@ -1,9 +1,20 @@
 # SI04 — The Site Looks Like Porelo's Website
 
-**Status:** Estimated.
-**Size:** S - one stylesheet and the logo copied in by `build/assemble.py`, the theme's palette, fonts and logo in its
-configuration, one check of the built pages in the site workflow, and tests of what it writes; no contract another
-repository reads.
+```json
+{
+  "$schema": "issue-1.json",
+  "id": "SI04",
+  "title": "The Site Looks Like Porelo's Website",
+  "state": "Estimated",
+  "size": "S",
+  "priority": "Medium",
+  "rank": 2,
+  "blockedBy": [],
+  "covers": "The documentation site in the website's look: dark only, its colours, fonts, glass surfaces and logo, the theme's navigation kept, nothing loaded from another origin; built after the rename window."
+}
+```
+
+**Why this size.** one stylesheet and the logo copied in by `build/assemble.py`, the theme's palette, fonts and logo in its configuration, one check of the built pages in the site workflow, and tests of what it writes; no contract another repository reads.
 
 **What must be true.** The documentation site looks like Porelo's website (porelo.ai), so that a reader moving from
 the website to the documentation sees one product: the same dark colours, accents, fonts, logo and surfaces.

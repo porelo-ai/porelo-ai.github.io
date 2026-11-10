@@ -1,6 +1,22 @@
 # SI05 — The Site Builds In A Porelo Task
 
-**Status:** Implementing: `porelo.yml` has no `COPY`; the run in a task follows.
+```json
+{
+  "$schema": "issue-1.json",
+  "id": "SI05",
+  "title": "The Site Builds In A Porelo Task",
+  "state": "Implementing",
+  "size": "S",
+  "priority": "Medium",
+  "rank": 1,
+  "blockedBy": [],
+  "covers": "The site's check green in a Porelo task: `porelo.yml` without `COPY`, its Debian base built once porelo can."
+}
+```
+
+**Why this size.** `porelo.yml` without `COPY` and one run of the check in a task.
+
+**How it stands.** `porelo.yml` has no `COPY`; the run in a task follows.
 
 **What must be true.** The site's whole check runs green inside a Porelo task, in the image its `porelo.yml` names.
 
