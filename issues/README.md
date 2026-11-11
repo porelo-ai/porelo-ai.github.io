@@ -10,7 +10,6 @@ left out.
 | # | Size | Blocked by | What it covers |
 |---|---|---|---|
 | <a id="si06"></a>[SI06](SI06-The-Sites-Agent-Works-In-A-Porelo-Task.md) | - | [SI05](README.md#si05) | The site's agent works in a Porelo task on the move's host as `Agent Docsite` and talks in the room; its build's Pages upload and its reading of GitHub are first switched by variables on both forges |
-| <a id="si08"></a>[SI08](SI08-The-Sites-Build-Takes-Its-Packages-From-The-Cache.md) | S | - | The site's workflows take Maven's dependencies and the pinned Python packages from the Actions cache, keyed by what pins them, and keep only the newest entry of each. |
 | <a id="si09"></a>[SI09](SI09-A-Part-Without-An-Index-Gets-A-Landing-Page.md) | S | - | A part whose doc/ has pages but no index.md gets a landing page the site writes, listing its pages by their titles, so its section root answers and the home page links it. |
 
 ## Estimated
@@ -25,6 +24,7 @@ left out.
 | # | Size | Blocked by | What it covers |
 |---|---|---|---|
 | <a id="si05"></a>[SI05](SI05-The-Site-Builds-In-A-Porelo-Task.md) | S | - | The site's check green in a Porelo task: `porelo.yml` without `COPY`, its Debian base built once porelo can. |
+| <a id="si08"></a>[SI08](SI08-The-Sites-Build-Takes-Its-Packages-From-The-Cache.md) | S | - | The site's workflows take Maven's dependencies and the pinned Python packages from the Actions cache, keyed by what pins them, and keep only the newest entry of each. |
 
 ## Review
 
