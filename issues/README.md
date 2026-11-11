@@ -22,6 +22,7 @@ left out.
 
 | # | Size | Blocked by | What it covers |
 |---|---|---|---|
+| <a id="si07"></a>[SI07](SI07-The-Site-Reads-Each-Repository-At-Its-Central-Address.md) | S | - | The site is built from every repository porelo-project's `project.yml` lists, each read at its `central` address in https form; one it cannot name on GitHub stops the build instead of leaving it out. |
 | <a id="si05"></a>[SI05](SI05-The-Site-Builds-In-A-Porelo-Task.md) | S | - | The site's check green in a Porelo task: `porelo.yml` without `COPY`, its Debian base built once porelo can. |
 
 ## Finished
