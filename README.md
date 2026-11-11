@@ -42,7 +42,8 @@ python3 -m venv .venv && .venv/bin/pip install --no-deps --require-hashes -r bui
 
 ## What the workflow may do
 
-It reads the other repositories and writes this repository's Pages; nothing else.
+It reads the other repositories, writes this repository's Pages and deletes its own older cache entries; nothing
+else.
 
 - **Built and checked from now on, published once the repositories are public** (2026-10-04): every run builds the whole
   site strict; the deploy runs only where the repository variable `PUBLISH` is `true`, set once the repositories
@@ -52,6 +53,9 @@ It reads the other repositories and writes this repository's Pages; nothing else
   that name it.
 - **An hourly run builds only when something moved:** the last build's manifest is kept in the Actions cache, and
   a run that finds the same one has nothing to do.
+- **Packages from the cache, only the newest entry of each:** Maven's local repository, the wrapper's Maven and the
+  pinned Python packages are kept in the Actions cache, each keyed by the file that pins it. A job of its own, which
+  fetches and runs nothing else, holds Actions: write only to delete every entry older than the newest.
 
 ## Contributing
 

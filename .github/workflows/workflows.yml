@@ -16,17 +16,30 @@ jobs:
         name: Workflow check
         runs-on: ubuntu-24.04
         timeout-minutes: 10
+        outputs:
+            wrapper: ${{ steps.wrapper.outputs.cache-primary-key }}
+            repository: ${{ steps.repository.outputs.cache-primary-key }}
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   persist-credentials: false
 
             # The wrapper's Maven, fetched once per pin: without it every job fetched it with one wget and no retry, and a
-            # single network hiccup failed a Build (2026-11-06).
-            - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+            # single network hiccup failed a Build (2026-11-06). Restored and saved apart: saved once filled, so a check
+            # that fails later still leaves it to the next run.
+            - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              id: wrapper
               with:
                   path: ~/.m2/wrapper
                   key: maven-wrapper-${{ runner.os }}-${{ hashFiles('.mvn/wrapper/maven-wrapper.properties') }}
+
+            # The shared build tools and every plugin and library they need, fetched from Central once per pom. No older
+            # entry is restored in its place: its leftovers would be saved again under the new key and only ever grow.
+            - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              id: repository
+              with:
+                  path: ~/.m2/repository
+                  key: maven-repository-${{ runner.os }}-${{ hashFiles('build/pom.xml') }}
 
             # The same shared tools and pinned GraalVM as the Shared rules check.
             - name: The shared build tools and the pinned GraalVM
@@ -49,6 +62,18 @@ jobs:
                   done
                   ./mvnw -B -q -f build/pom.xml dependency:build-classpath -Dmdep.outputFile="$RUNNER_TEMP/tools-cp.txt"
                   "$JAVA_HOME/bin/java" -cp "$(cat "$RUNNER_TEMP/tools-cp.txt")" org.fuin.porelo.machines.Main jdk --github
+
+            - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              if: steps.wrapper.outputs.cache-hit != 'true'
+              with:
+                  path: ~/.m2/wrapper
+                  key: ${{ steps.wrapper.outputs.cache-primary-key }}
+
+            - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              if: steps.repository.outputs.cache-hit != 'true'
+              with:
+                  path: ~/.m2/repository
+                  key: ${{ steps.repository.outputs.cache-primary-key }}
 
             - name: Every step pinned to a commit
               run: '"$JAVA_HOME/bin/java" -cp "$(cat "$RUNNER_TEMP/tools-cp.txt")" org.fuin.porelo.release.Main check-actions .github'
@@ -75,3 +100,51 @@ jobs:
                       print(f"ERROR {line}", file=sys.stderr)
                   sys.exit(1 if bad else 0)
                   PY
+
+    # Only the newest entry of each cache is kept, so the cache never overflows. A job of its own, so the token that may
+    # delete never meets the tools the other jobs fetch. Main's run deletes every older entry; any other run only its
+    # own ref's, never main's, which main still restores. By id, since one key may stand under several refs. Every run,
+    # so a delete that failed is tried again; a failure - a fork's read-only token above all - only warns. GitHub's
+    # cache API alone: another forge's token never goes there.
+    prune:
+        needs: check
+        if: ${{ !cancelled() && github.server_url == 'https://github.com' }}
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        permissions:
+            actions: write
+        steps:
+            - name: Only the newest entry of each cache
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  # One cache a line: the prefix its entries share, and the key the run restored or saved.
+                  KEEP: |
+                      maven-wrapper-${{ runner.os }}- ${{ needs.check.outputs.wrapper }}
+                      maven-repository-${{ runner.os }}- ${{ needs.check.outputs.repository }}
+              run: |
+                  set -euo pipefail
+                  scope=(--ref "$GITHUB_REF")
+                  if [ "$GITHUB_REF" = refs/heads/main ]; then
+                      scope=()
+                  fi
+                  while read -r prefix keep; do
+                      # A cache the run did not restore or save names no key, and nothing of it is deleted.
+                      if [ -z "${keep:-}" ]; then
+                          continue
+                      fi
+                      if ! entries=$(gh cache list --repo "$GITHUB_REPOSITORY" --key "$prefix" "${scope[@]}" \
+                          --limit 100 --json id,key --jq '.[] | "\(.id) \(.key)"'); then
+                          echo "::warning::the cache entries under $prefix could not be listed; older ones stay for now"
+                          continue
+                      fi
+                      while read -r id key; do
+                          if [ -z "${id:-}" ] || [ "$key" = "$keep" ]; then
+                              continue
+                          fi
+                          if gh cache delete --repo "$GITHUB_REPOSITORY" "$id"; then
+                              echo "Deleted the older cache entry $key."
+                          else
+                              echo "::warning::the older cache entry $key could not be deleted; the next run retries"
+                          fi
+                      done <<< "$entries"
+                  done <<< "$KEEP"

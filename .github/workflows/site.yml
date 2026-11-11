@@ -37,9 +37,16 @@ jobs:
         runs-on: ubuntu-24.04
         # A push also fetches the pinned GraalVM and the shared build tools for its commit messages.
         timeout-minutes: 10
+        # The Python the wheels in the cache are built for; the build job names the same. Per job, so the prune job,
+        # which holds a write token, inherits no variable at all.
+        env:
+            PYTHON: '3.13'
         outputs:
             changed: ${{ steps.decide.outputs.changed }}
             key: ${{ steps.compare.outputs.key }}
+            wheels: ${{ steps.wheels.outputs.cache-primary-key }}
+            wrapper: ${{ steps.wrapper.outputs.cache-primary-key }}
+            repository: ${{ steps.repository.outputs.cache-primary-key }}
         steps:
             # Every commit, so the pushed range can be read.
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -50,21 +57,54 @@ jobs:
 
             - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
               with:
-                  python-version: '3.13'
+                  python-version: ${{ env.PYTHON }}
 
+            # The pinned packages themselves, fetched from PyPI once per pin: pip's own cache would still ask PyPI's
+            # index on every run. No older entry is restored in its place, so the entry holds this pin's packages only.
+            - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              id: wheels
+              with:
+                  path: ${{ runner.temp }}/wheels
+                  key: pip-wheels-${{ runner.os }}-python${{ env.PYTHON }}-${{ hashFiles('build/requirements.txt') }}
+
+            # Each package is checked against its hash when it is fetched and again when it is installed from the cache.
+            # Wheels only: a source package would need build tools from PyPI to install without it.
             - name: The pinned tools, every package by its hash
-              run: python -m pip install --no-deps --require-hashes -r build/requirements.txt
+              env:
+                  WHEELS: ${{ runner.temp }}/wheels
+                  FOUND: ${{ steps.wheels.outputs.cache-hit }}
+              run: |
+                  set -euo pipefail
+                  if [ "$FOUND" != true ]; then
+                      python -m pip download --no-deps --require-hashes --only-binary=:all: -d "$WHEELS" \
+                          -r build/requirements.txt
+                  fi
+                  python -m pip install --no-index --find-links "$WHEELS" --no-deps --require-hashes \
+                      -r build/requirements.txt
+
+            - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              if: steps.wheels.outputs.cache-hit != 'true'
+              with:
+                  path: ${{ runner.temp }}/wheels
+                  key: ${{ steps.wheels.outputs.cache-primary-key }}
 
             - name: The collector's tests
               run: python -m unittest discover -s tests
 
-            # The wrapper's Maven, fetched once per pin: without it every job fetched it with one wget and no retry, and a
-            # single network hiccup failed a Build (2026-11-06).
-            - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+            # The wrapper's Maven and the shared build tools as the Shared rules check keeps them, under the same keys.
+            - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               if: github.event_name == 'push'
+              id: wrapper
               with:
                   path: ~/.m2/wrapper
                   key: maven-wrapper-${{ runner.os }}-${{ hashFiles('.mvn/wrapper/maven-wrapper.properties') }}
+
+            - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              if: github.event_name == 'push'
+              id: repository
+              with:
+                  path: ~/.m2/repository
+                  key: maven-repository-${{ runner.os }}-${{ hashFiles('build/pom.xml') }}
 
             # As the Shared rules check takes them: the runner's Java 25 runs porelo-machines once, which installs the
             # pinned GraalVM, checked against its digest, as JAVA_HOME for the step after it.
@@ -89,6 +129,18 @@ jobs:
                   done
                   ./mvnw -B -q -f build/pom.xml dependency:build-classpath -Dmdep.outputFile="$RUNNER_TEMP/tools-cp.txt"
                   "$JAVA_HOME/bin/java" -cp "$(cat "$RUNNER_TEMP/tools-cp.txt")" org.fuin.porelo.machines.Main jdk --github
+
+            - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              if: github.event_name == 'push' && steps.wrapper.outputs.cache-hit != 'true'
+              with:
+                  path: ~/.m2/wrapper
+                  key: ${{ steps.wrapper.outputs.cache-primary-key }}
+
+            - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              if: github.event_name == 'push' && steps.repository.outputs.cache-hit != 'true'
+              with:
+                  path: ~/.m2/repository
+                  key: ${{ steps.repository.outputs.cache-primary-key }}
 
             # A direct push to main never meets the pull request's check, so the push's own range is read here. Only main
             # is pushed to start this workflow, and main itself cannot be pushed over.
@@ -142,6 +194,9 @@ jobs:
         if: needs.check.outputs.changed != 'false'
         runs-on: ubuntu-24.04
         timeout-minutes: 15
+        # The same Python as the check job's, whose cached wheels it installs.
+        env:
+            PYTHON: '3.13'
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -150,10 +205,33 @@ jobs:
 
             - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
               with:
-                  python-version: '3.13'
+                  python-version: ${{ env.PYTHON }}
+
+            # As the check job takes them, which saved them for this pin before.
+            - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              id: wheels
+              with:
+                  path: ${{ runner.temp }}/wheels
+                  key: pip-wheels-${{ runner.os }}-python${{ env.PYTHON }}-${{ hashFiles('build/requirements.txt') }}
 
             - name: The pinned tools, every package by its hash
-              run: python -m pip install --no-deps --require-hashes -r build/requirements.txt
+              env:
+                  WHEELS: ${{ runner.temp }}/wheels
+                  FOUND: ${{ steps.wheels.outputs.cache-hit }}
+              run: |
+                  set -euo pipefail
+                  if [ "$FOUND" != true ]; then
+                      python -m pip download --no-deps --require-hashes --only-binary=:all: -d "$WHEELS" \
+                          -r build/requirements.txt
+                  fi
+                  python -m pip install --no-index --find-links "$WHEELS" --no-deps --require-hashes \
+                      -r build/requirements.txt
+
+            - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              if: steps.wheels.outputs.cache-hit != 'true'
+              with:
+                  path: ${{ runner.temp }}/wheels
+                  key: ${{ steps.wheels.outputs.cache-primary-key }}
 
             - name: Every repository's doc/, in porelo-project's order
               env:
@@ -174,6 +252,56 @@ jobs:
               with:
                   path: now.json
                   key: ${{ needs.check.outputs.key }}
+
+    # Only the newest entry of each cache is kept, so the cache never overflows. A job of its own, so the token that may
+    # delete never meets the tools the other jobs fetch. Main's run deletes every older entry; any other run only its
+    # own ref's, never main's, which main still restores. By id, since one key may stand under several refs. Every run,
+    # so a delete that failed is tried again; a failure - a fork's read-only token above all - only warns. GitHub's
+    # cache API alone: another forge's token never goes there.
+    prune:
+        needs: [check, build]
+        if: ${{ !cancelled() && github.server_url == 'https://github.com' }}
+        runs-on: ubuntu-24.04
+        timeout-minutes: 5
+        permissions:
+            actions: write
+        steps:
+            - name: Only the newest entry of each cache
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  # One cache a line: the prefix its entries share, and the key the run restored or saved.
+                  KEEP: |
+                      pip-wheels-${{ runner.os }}- ${{ needs.check.outputs.wheels }}
+                      maven-wrapper-${{ runner.os }}- ${{ needs.check.outputs.wrapper }}
+                      maven-repository-${{ runner.os }}- ${{ needs.check.outputs.repository }}
+                      site- ${{ needs.build.result == 'success' && needs.check.outputs.key || '' }}
+              run: |
+                  set -euo pipefail
+                  scope=(--ref "$GITHUB_REF")
+                  if [ "$GITHUB_REF" = refs/heads/main ]; then
+                      scope=()
+                  fi
+                  while read -r prefix keep; do
+                      # A cache the run did not restore or save names no key, and nothing of it is deleted.
+                      if [ -z "${keep:-}" ]; then
+                          continue
+                      fi
+                      if ! entries=$(gh cache list --repo "$GITHUB_REPOSITORY" --key "$prefix" "${scope[@]}" \
+                          --limit 100 --json id,key --jq '.[] | "\(.id) \(.key)"'); then
+                          echo "::warning::the cache entries under $prefix could not be listed; older ones stay for now"
+                          continue
+                      fi
+                      while read -r id key; do
+                          if [ -z "${id:-}" ] || [ "$key" = "$keep" ]; then
+                              continue
+                          fi
+                          if gh cache delete --repo "$GITHUB_REPOSITORY" "$id"; then
+                              echo "Deleted the older cache entry $key."
+                          else
+                              echo "::warning::the older cache entry $key could not be deleted; the next run retries"
+                          fi
+                      done <<< "$entries"
+                  done <<< "$KEEP"
 
     publish:
         needs: build
