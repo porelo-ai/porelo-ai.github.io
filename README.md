@@ -34,7 +34,7 @@ search, light or dark as the reader's system says, and tables that wrap.
 ```sh
 python3 -m venv .venv && .venv/bin/pip install --no-deps --require-hashes -r build/requirements.txt
 .venv/bin/python build/assemble.py --out /tmp/site                     # from GitHub, as the workflow does
-.venv/bin/python build/assemble.py --out /tmp/site --local porelo=../porelo --project-yml ../porelo-project/project.yml
+.venv/bin/python build/assemble.py --out /tmp/site --local core=../porelo --project-yml ../porelo-project/project.yml
 .venv/bin/mkdocs serve --config-file /tmp/site/mkdocs.yml
 ```
 

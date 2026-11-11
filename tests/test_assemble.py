@@ -52,6 +52,25 @@ class PartsTest(unittest.TestCase):
         self.assertEqual(dict((name, url) for name, url, _ in assemble.parts(project))["core"],
                          "https://github.com/porelo-ai/porelo.git")
 
+    def test_every_spelling_of_a_github_address_reads_as_one(self):
+        for address in ("git@github.com:porelo-ai/porelo.git", "https://github.com/porelo-ai/porelo",
+                        "https://github.com/porelo-ai/porelo.git/", "ssh://git@github.com/porelo-ai/porelo.git",
+                        "ssh://git@github.com:22/porelo-ai/porelo", "Git@GitHub.com:Porelo-AI/Porelo.GIT"):
+            self.assertEqual(assemble.https(address), "https://github.com/porelo-ai/porelo.git", address)
+        for address in ("git@gitlab.com:porelo-ai/porelo.git", "ssh://git@127.0.0.1:2222/acme/local.git", "", None):
+            self.assertIsNone(assemble.https(address), address)
+
+    def test_the_site_itself_is_left_out_however_its_address_is_spelled(self):
+        project = {"repositories": {"site": {"central": "git@github.com:Porelo-AI/Porelo-AI.github.io.git"}}}
+
+        self.assertEqual([name for name, _, _ in assemble.parts(project)], ["porelo-project"])
+
+    def test_a_project_that_lists_no_repository_fails_the_build(self):
+        # A key renamed or moved again would otherwise publish the project's own pages alone, green.
+        for project in ({}, {"repositories": {}}, {"repositories": None}):
+            with self.assertRaises(SystemExit, msg=str(project)):
+                assemble.parts(project)
+
     def test_a_listed_repository_with_no_github_address_fails_the_build(self):
         # A site built from none of its repositories stayed green for days when project.yml renamed its key.
         project = {"repositories": {"core": {"central": "git@github.com:porelo-ai/porelo.git"},
@@ -66,7 +85,8 @@ class PartsTest(unittest.TestCase):
 
     def test_the_project_row_says_what_the_repository_holds_not_what_porelo_is(self):
         # project.description describes Porelo itself; beside the project's repository it read as nonsense.
-        project = {"project": {"description": "A hardened box an agent works in"}, "repositories": {}}
+        project = {"project": {"description": "A hardened box an agent works in"},
+                   "repositories": {"core": {"central": "git@github.com:porelo-ai/porelo.git"}}}
 
         description = dict((name, text) for name, _, text in assemble.parts(project))["porelo-project"]
 

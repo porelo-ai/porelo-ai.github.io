@@ -41,3 +41,8 @@ a site of the project's own pages alone. The builds stay green, as nothing check
 - Only `central` is read; a repository still naming its address as `upstream` alone stops the build like one with no
   address, so a key renamed again cannot empty the site unseen.
 - Built as a fix during an operator test: its unit tests seen red, then green; the reading by another model follows.
+- From the reading by another model: a `project.yml` listing no repository stops the build too; a GitHub address is
+  read in every spelling git takes (`ssh://`, any case, with or without `.git`), lower-cased, so the site leaves
+  itself out however it is spelled; the README's `--local` example names the key `core`. Not taken: a `--local`
+  repository with no GitHub address (the site's work in a task, a later issue's), and tests of `--manifest` and
+  `--local`, which this change did not touch.

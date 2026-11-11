@@ -85,9 +85,14 @@ def project_yml(path):
 
 
 def https(address):
-    """git@github.com:org/name.git and https://github.com/org/name(.git) alike, as an https address."""
-    match = re.match(r"(?:git@github\.com:|https://github\.com/)([^/]+/[^/]+?)(?:\.git)?/?$", address or "")
-    return f"https://github.com/{match.group(1)}.git" if match else None
+    """A GitHub address in any of git's spellings, as one https address in lower case.
+
+    git@github.com:org/name.git, ssh://git@github.com[:port]/org/name.git and https://github.com/org/name, each
+    with or without .git and a closing slash; GitHub reads an owner and a name in any case.
+    """
+    match = re.match(r"(?:git@github\.com:|ssh://git@github\.com(?::\d+)?/|https://github\.com/)"
+                     r"([^/]+/[^/]+?)(?:\.git)?/?$", address or "", re.IGNORECASE)
+    return f"https://github.com/{match.group(1).lower()}.git" if match else None
 
 
 def parts(project):
@@ -96,8 +101,12 @@ def parts(project):
     Last because it is organizational, of little interest to someone who uses Porelo (2026-10-05); the
     menu and the start page follow this order.
     """
+    listed = project.get("repositories") or {}
+    if not listed:
+        # The project's own pages alone, published green, when the key is renamed or moved.
+        raise SystemExit("cannot build the site, project.yml lists no repositories")
     found, unnamed = [], []
-    for name, repository in (project.get("repositories") or {}).items():
+    for name, repository in listed.items():
         url = https((repository or {}).get("central"))
         if url is None:
             unnamed.append(name)
