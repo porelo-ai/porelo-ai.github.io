@@ -5,7 +5,7 @@
   "$schema": "issue-1.json",
   "id": "SI07",
   "title": "The Site Reads Each Repository At Its Central Address",
-  "state": "Implementing",
+  "state": "Review",
   "size": "S",
   "priority": "High",
   "rank": 1,
@@ -35,3 +35,9 @@ a site of the project's own pages alone. The builds stay green, as nothing check
 
 - The tests above, seen red first.
 - The next published build shows every repository's section again.
+
+## As built
+
+- Only `central` is read; a repository still naming its address as `upstream` alone stops the build like one with no
+  address, so a key renamed again cannot empty the site unseen.
+- Built as a fix during an operator test: its unit tests seen red, then green; the reading by another model follows.

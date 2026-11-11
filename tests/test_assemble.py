@@ -38,13 +38,31 @@ class PartsTest(unittest.TestCase):
         # Decided: the project's own repository is organizational, of little interest to a user.
         project = {"project": {"description": "the project"},
                    "repositories": {
-                       "core": {"upstream": "git@github.com:porelo-ai/porelo.git"},
-                       "frontend": {"upstream": "git@github.com:porelo-ai/porelo-frontend.git"},
-                       "site": {"upstream": "git@github.com:porelo-ai/porelo-ai.github.io.git"},
-                       "buildtools": {"upstream": "git@github.com:porelo-ai/porelo-buildtools.git"}}}
+                       "core": {"central": "git@github.com:porelo-ai/porelo.git"},
+                       "frontend": {"central": "git@github.com:porelo-ai/porelo-frontend.git"},
+                       "site": {"central": "git@github.com:porelo-ai/porelo-ai.github.io.git"},
+                       "buildtools": {"central": "git@github.com:porelo-ai/porelo-buildtools.git"}}}
 
         self.assertEqual([name for name, _, _ in assemble.parts(project)],
                          ["core", "frontend", "buildtools", "porelo-project"])
+
+    def test_each_repository_is_read_from_its_central_address_in_https_form(self):
+        project = {"repositories": {"core": {"central": "git@github.com:porelo-ai/porelo.git"}}}
+
+        self.assertEqual(dict((name, url) for name, url, _ in assemble.parts(project))["core"],
+                         "https://github.com/porelo-ai/porelo.git")
+
+    def test_a_listed_repository_with_no_github_address_fails_the_build(self):
+        # A site built from none of its repositories stayed green for days when project.yml renamed its key.
+        project = {"repositories": {"core": {"central": "git@github.com:porelo-ai/porelo.git"},
+                                    "frontend": {"upstream": "git@github.com:porelo-ai/porelo-frontend.git"},
+                                    "local": {"central": "ssh://git@127.0.0.1:2222/acme/local.git"}}}
+
+        with self.assertRaises(SystemExit) as stopped:
+            assemble.parts(project)
+        self.assertIn("frontend", str(stopped.exception.code))
+        self.assertIn("local", str(stopped.exception.code))
+        self.assertNotIn("core", str(stopped.exception.code))
 
     def test_the_project_row_says_what_the_repository_holds_not_what_porelo_is(self):
         # project.description describes Porelo itself; beside the project's repository it read as nonsense.

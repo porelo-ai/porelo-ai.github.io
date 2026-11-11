@@ -2,8 +2,9 @@
 """Assembles one documentation site from the doc/ of every Porelo repository.
 
 The list of repositories, and their order, is porelo-project's project.yml: its `repositories`, each with the
-`upstream` it is reached at. For each, the documentation on its default branch is taken, so a page appears within
-the hour of a push, and the start page says at which commit. A repository with no doc/ is left out and named in the
+`central` address it is reached at, read in its https form; one with no GitHub address stops the build. For each, the
+documentation on its default branch is taken, so a page appears within the hour of a push, and the start page says at
+which commit. A repository with no doc/ is left out and named in the
 log.
 
 A section's order is the `nav` of that repository's own mkdocs.yml, when it has one; otherwise its index.md, then
@@ -83,9 +84,9 @@ def project_yml(path):
         return yaml.safe_load(response.read())
 
 
-def https(upstream):
+def https(address):
     """git@github.com:org/name.git and https://github.com/org/name(.git) alike, as an https address."""
-    match = re.match(r"(?:git@github\.com:|https://github\.com/)([^/]+/[^/]+?)(?:\.git)?/?$", upstream or "")
+    match = re.match(r"(?:git@github\.com:|https://github\.com/)([^/]+/[^/]+?)(?:\.git)?/?$", address or "")
     return f"https://github.com/{match.group(1)}.git" if match else None
 
 
@@ -95,13 +96,17 @@ def parts(project):
     Last because it is organizational, of little interest to someone who uses Porelo (2026-10-05); the
     menu and the start page follow this order.
     """
-    found = []
+    found, unnamed = [], []
     for name, repository in (project.get("repositories") or {}).items():
-        url = https((repository or {}).get("upstream"))
+        url = https((repository or {}).get("central"))
         if url is None:
-            log(f"skipped {name}: no GitHub upstream in project.yml")
+            unnamed.append(name)
             continue
         found.append((name, url, (repository or {}).get("description", "")))
+    if unnamed:
+        # A site built without them would be published green and as good as empty.
+        raise SystemExit("cannot build the site, project.yml gives these repositories no GitHub central address: "
+                         + ", ".join(unnamed))
     # Not project.description: that says what Porelo is, and beside this repository it read as if it were the box.
     found.append((PROJECT, f"https://github.com/{ORG}/{PROJECT}.git", PROJECT_DESCRIPTION))
     return [part for part in found if not part[1].endswith(f"/{SELF}.git")]
