@@ -5,7 +5,7 @@
   "$schema": "issue-1.json",
   "id": "SI05",
   "title": "The Site Builds In A Porelo Task",
-  "state": "Implementing",
+  "state": "Backlog",
   "size": "S",
   "priority": "Medium",
   "rank": 1,

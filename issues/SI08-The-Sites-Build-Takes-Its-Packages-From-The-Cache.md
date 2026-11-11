@@ -5,7 +5,7 @@
   "$schema": "issue-1.json",
   "id": "SI08",
   "title": "The Site's Build Takes Its Packages From The Cache",
-  "state": "Implementing",
+  "state": "Review",
   "size": "S",
   "priority": "Medium",
   "rank": 2,
