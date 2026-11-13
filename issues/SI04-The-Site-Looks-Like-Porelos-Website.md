@@ -7,7 +7,7 @@
   "title": "The Site Looks Like Porelo's Website",
   "state": "Estimated",
   "size": "S",
-  "priority": "Medium",
+  "priority": "Low",
   "rank": 2,
   "blockedBy": [],
   "covers": "The documentation site in the website's look: dark only, its colours, fonts, glass surfaces and logo, the theme's navigation kept, nothing loaded from another origin; built after the rename window."
