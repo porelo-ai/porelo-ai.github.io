@@ -5,12 +5,12 @@
   "$schema": "issue-1.json",
   "id": "SI06",
   "title": "The Site's Agent Works In A Porelo Task",
-  "state": "Analyzed",
+  "state": "Backlog",
   "size": "S",
   "priority": "Medium",
   "rank": 1,
   "blockedBy": ["SI05"],
-  "openQuestions": 1,
+  "openQuestions": 0,
   "covers": "The site's agent works in a Porelo task on the move's host as `Agent Docsite` and talks in the room; its build's Pages upload and its reading of GitHub are first switched by variables on both forges"
 }
 ```
@@ -18,7 +18,7 @@
 **Why this size.** S: one workflow, the collector and its tests, then the trial on the rented host. Estimate: 38
 minutes (Core's median for S), the trial's waits not counted.
 
-**How it stands.** Blocked by [SI05](README.md#si05); one open question.
+**How it stands.** Blocked by [SI05](README.md#si05).
 
 **What must be true.** porelo-ai.github.io's agent works in a Porelo task on the move's host, as the project's procedure for an agent's
 move lays out, and takes this issue to
@@ -37,24 +37,25 @@ the nickname `Docsite` that porelo-project's `project.yml` is to give the reposi
   centrally, so the workflow reads the same on both forges.
 - **The reading of the other repositories:** `build/assemble.py` reads porelo-project's `project.yml` from
   `api.github.com` and clones every repository at its central GitHub address with `secrets.PORELO_DOCS_READ`, a
-  GitHub token. The host's forge has no such secret. How the site's Build reads them there is the open question;
-  whichever answer, it is switched by a variable both forges carry, never by a branch in the workflow, and
-  `tests/test_assemble.py` gets a test for each value, the one for the host's red first.
-- **Steps:** (1) the two switches and their tests; (2) the procedure's dry run on the development machine; (3) the
+  GitHub token the host's forge does not have and never gets. On the host's forge the Build runs only the collector's
+  tests (`tests/`) and this repository's own checks; the whole site is collected and built on GitHub alone. The steps
+  that read the other repositories - the `check` job's "What would be taken now", and in `build` the collection, the
+  strict site build and the upload - take `if: vars.PORELO_PUBLISH != 'false'`, the same variable as the upload, so
+  the workflow reads the same on both forges and nothing in it names a forge.
+- **Steps:** (1) the switch; (2) the procedure's dry run on the development machine; (3) the
   trial on the rented host, this issue taken to Review inside the task with the forge's Build green, the agent
   talking as `Agent Docsite`; (4) the way back.
 
 ## Acceptance
 
-- `site.yml` green on GitHub with the Pages artifact uploaded, and green on the host's forge with none uploaded and
-  nothing read from GitHub with a token the host does not have.
+- `site.yml` green on GitHub with the whole site collected, built strict and its Pages artifact uploaded.
+- `site.yml` green on the host's forge with the collector's tests and the repository's own checks run, and no step
+  reading another repository: seen to fail first, a run there that still reaches the collection fails for lack of
+  `PORELO_DOCS_READ`.
 - On the host: the procedure's check, each line green.
 
-## Open questions
+## To be checked
 
-- How the site's Build reads the other repositories on the host's forge, where `secrets.PORELO_DOCS_READ` (a GitHub
-  read token) is not set: (a) the host's forge gets that read-only token as an organization secret, set by
-  porelo-host's `up`, so the host builds the whole site as GitHub does; (b) on the host the Build runs the collector's
-  tests and this repository's own checks only, and the whole site is built on GitHub alone, which needs no token on
-  the host. Proposed: (b), since no GitHub credential then reaches a rented host, and the site published is GitHub's
-  anyway.
+- The `check` job's `decide` step and the `build` job's `if` read the key of "What would be taken now". With that step
+  switched off, the host's run must still run the collector's tests and the repository's checks, and must not read a
+  missing key as "nothing changed" or as a failure.

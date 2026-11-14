@@ -11,12 +11,6 @@ left out.
 |---|---|---|---|
 | <a id="si09"></a>[SI09](SI09-A-Part-Without-An-Index-Gets-A-Landing-Page.md) | S | - | A part whose doc/ has pages but no index.md gets a landing page the site writes, listing its pages by their titles, so its section root answers and the home page links it. |
 
-## Analyzed
-
-| # | Size | Blocked by | What it covers | Open questions |
-|---|---|---|---|---|
-| <a id="si06"></a>[SI06](SI06-The-Sites-Agent-Works-In-A-Porelo-Task.md) | S | [SI05](README.md#si05) | The site's agent works in a Porelo task on the move's host as `Agent Docsite` and talks in the room; its build's Pages upload and its reading of GitHub are first switched by variables on both forges | 1 |
-
 ## Estimated
 
 | # | Size | Blocked by | What it covers |
@@ -25,10 +19,11 @@ left out.
 
 ## Backlog
 
-| # | Size | Blocked by | What it covers |
-|---|---|---|---|
-| <a id="si01"></a>[SI01](SI01-The-Site-Moves-To-Zensical.md) | M | - | The site moves to Zensical after the operator's test now under way, whatever its version, pinned by hash and compared page by page. |
-| <a id="si05"></a>[SI05](SI05-The-Site-Builds-In-A-Porelo-Task.md) | S | - | The site's check green in a Porelo task: `porelo.yml` without `COPY`, its Debian base built once porelo can. |
+| # | Size | Blocked by | What it covers | Open questions |
+|---|---|---|---|---|
+| <a id="si01"></a>[SI01](SI01-The-Site-Moves-To-Zensical.md) | M | - | The site moves to Zensical after the operator's test now under way, whatever its version, pinned by hash and compared page by page. | - |
+| <a id="si05"></a>[SI05](SI05-The-Site-Builds-In-A-Porelo-Task.md) | S | - | The site's check green in a Porelo task: `porelo.yml` without `COPY`, its Debian base built once porelo can. | - |
+| <a id="si06"></a>[SI06](SI06-The-Sites-Agent-Works-In-A-Porelo-Task.md) | S | [SI05](README.md#si05) | The site's agent works in a Porelo task on the move's host as `Agent Docsite` and talks in the room; its build's Pages upload and its reading of GitHub are first switched by variables on both forges | 0 |
 
 ## Review
 
