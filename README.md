@@ -26,8 +26,9 @@ its own `doc/`, where its code is, and checks it there; this repository only col
   shows (`parts.json` on the site says what that is).
 
 `build/assemble.py` does the collecting; `.github/workflows/site.yml` runs it, builds with `mkdocs --strict` and
-publishes with GitHub Pages. The theme is Material for MkDocs, by configuration alone: a tab per repository,
-search, light or dark as the reader's system says, and tables that wrap.
+publishes with GitHub Pages. The theme is Material for MkDocs, by configuration alone: a tab per kind of part
+(porelo, agents, build readers, messaging, ui, host, internal), each repository a section beneath its tab, search,
+light or dark as the reader's system says, and tables that wrap.
 
 ## Building it on your own computer
 
@@ -45,8 +46,8 @@ python3 -m venv .venv && .venv/bin/pip install --no-deps --require-hashes -r bui
 It reads the other repositories, writes this repository's Pages and deletes its own older cache entries; nothing
 else.
 
-- **Built and checked from now on, published once the repositories are public** (2026-10-04): every run builds the whole
-  site strict; the deploy runs only where the repository variable `PUBLISH` is `true`, set once the repositories
+- **Built and checked from now on, published once the repositories are public** (2026-10-04): every run that finds something
+  moved builds the whole site strict (an hourly run that finds the last build's manifest unchanged builds nothing); the deploy runs only where the repository variable `PUBLISH` is `true`, set once the repositories
   are public.
 - **Its one secret, until then:** `PORELO_DOCS_READ`, a fine-grained token with **Contents: read** (and the
   Metadata: read that comes with it) on the Porelo repositories. Once they are public it is deleted, with the lines

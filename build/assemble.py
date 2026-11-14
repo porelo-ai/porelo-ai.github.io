@@ -130,8 +130,8 @@ def fetch(name, url, where):
     return {"name": name, "ref": "main", "commit": commit}
 
 
-# Material for MkDocs, by configuration alone: a tab per repository, search, light or dark as the reader's system
-# says, and tables that wrap their cells instead of cutting them off, which the theme before it could not.
+# Material for MkDocs, by configuration alone: a tab per kind of part (GROUPS), search, light or dark as the reader's
+# system says, and tables that wrap their cells instead of cutting them off, which the theme before it could not.
 THEME = {
     "name": "material",
     "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.indexes",

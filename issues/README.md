@@ -29,6 +29,7 @@ left out.
 
 | # | Size | Blocked by | What it covers |
 |---|---|---|---|
+| <a id="si10"></a>[SI10](SI10-The-Sites-README-Says-What-It-Does.md) | XS | - | Every claim of the site's README.md and doc/ that build/assemble.py and the workflows do not bear out is corrected. |
 | <a id="si07"></a>[SI07](SI07-The-Site-Reads-Each-Repository-At-Its-Central-Address.md) | S | - | The site is built from every repository porelo-project's `project.yml` lists, each read at its `central` address in https form; one it cannot name on GitHub stops the build instead of leaving it out. |
 
 ## Finished
