@@ -30,7 +30,6 @@ left out.
 | # | Size | Blocked by | What it covers |
 |---|---|---|---|
 | <a id="si07"></a>[SI07](SI07-The-Site-Reads-Each-Repository-At-Its-Central-Address.md) | S | - | The site is built from every repository porelo-project's `project.yml` lists, each read at its `central` address in https form; one it cannot name on GitHub stops the build instead of leaving it out. |
-| <a id="si08"></a>[SI08](SI08-The-Sites-Build-Takes-Its-Packages-From-The-Cache.md) | S | - | The site's workflows take Maven's dependencies and the pinned Python packages from the Actions cache, keyed by what pins them, and keep only the newest entry of each. |
 
 ## Finished
 
@@ -38,3 +37,4 @@ left out.
 |---|---|---|
 | <a id="si02"></a>SI02 | The Menu Grouped By What A Part Is | Six tabs - porelo, agents, build readers, messaging, ui, internal - each repository a section beneath them, a repository not mapped a tab of its own, and the landing page out of the menu. |
 | <a id="si03"></a>SI03 | Renamed Porelo Here | The site is Porelo's, published from `porelo-ai.github.io` with the secret `PORELO_DOCS_READ` and assembled from the renamed repositories; a documents test refuses the old word. |
+| <a id="si08"></a>SI08 | The Site's Build Takes Its Packages From The Cache | The site's three workflows restore and save Maven's repository, the wrapper and the pinned Python packages as hashed wheels in the Actions cache under keys that name what each holds, and a prune job of their own, alone holding `actions: write`, keeps only the newest entry of each. |
