@@ -29,13 +29,13 @@ left out.
 
 | # | Size | Blocked by | What it covers |
 |---|---|---|---|
-| <a id="si10"></a>[SI10](SI10-The-Sites-README-Says-What-It-Does.md) | XS | - | Every claim of the site's README.md and doc/ that build/assemble.py and the workflows do not bear out is corrected. |
 | <a id="si07"></a>[SI07](SI07-The-Site-Reads-Each-Repository-At-Its-Central-Address.md) | S | - | The site is built from every repository porelo-project's `project.yml` lists, each read at its `central` address in https form; one it cannot name on GitHub stops the build instead of leaving it out. |
 
 ## Finished
 
 | # | Title | What was built |
 |---|---|---|
+| <a id="si10"></a>SI10 | The Site's README Says What It Does | The README says the theme has a tab per kind of part with each repository a section beneath it, and that an hourly run whose manifest is unchanged builds nothing. |
 | <a id="si02"></a>SI02 | The Menu Grouped By What A Part Is | Six tabs - porelo, agents, build readers, messaging, ui, internal - each repository a section beneath them, a repository not mapped a tab of its own, and the landing page out of the menu. |
 | <a id="si03"></a>SI03 | Renamed Porelo Here | The site is Porelo's, published from `porelo-ai.github.io` with the secret `PORELO_DOCS_READ` and assembled from the renamed repositories; a documents test refuses the old word. |
 | <a id="si08"></a>SI08 | The Site's Build Takes Its Packages From The Cache | The site's three workflows restore and save Maven's repository, the wrapper and the pinned Python packages as hashed wheels in the Actions cache under keys that name what each holds, and a prune job of their own, alone holding `actions: write`, keeps only the newest entry of each. |
