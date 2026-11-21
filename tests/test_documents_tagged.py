@@ -1,6 +1,6 @@
 """Holds that every test reading a document of this repository is named so that it runs with the documents.
 
-A change to documents or issues runs only the tests named `test_documents_*.py`:
+A change to documents runs only the tests named `test_documents_*.py`:
 
     python -m unittest discover -s tests -p 'test_documents_*.py'
 
@@ -15,9 +15,9 @@ import unittest
 
 TESTS = os.path.dirname(os.path.abspath(__file__))
 
-# A path out of the tests to a document of this repository: its chapter, its issues, a Markdown file, the navigation.
+# A path out of the tests to a document of this repository: its chapter, a Markdown file, the navigation.
 READS_DOCUMENTS = re.compile(
-    r'dirname\(__file__\)\s*,\s*"\.\."\s*,\s*"(doc|issues|[^"]*\.md|mkdocs\.yml)"')
+    r'dirname\(__file__\)\s*,\s*"\.\."\s*,\s*"(doc|[^"]*\.md|mkdocs\.yml)"')
 
 NAMED = re.compile(r"^test_documents_.*\.py$")
 
@@ -43,7 +43,6 @@ class DocumentTestsNamedTest(unittest.TestCase):
     def test_knows_a_path_to_a_document_when_it_sees_one(self):
         for reads in ('os.path.join(os.path.dirname(__file__), "..", "README.md")',
                       'os.path.join(os.path.dirname(__file__), "..", "doc")',
-                      'os.path.join(os.path.dirname(__file__), "..", "issues")',
                       'os.path.join(os.path.dirname(__file__), "..", "mkdocs.yml")'):
             self.assertTrue(READS_DOCUMENTS.search(reads), reads)
         for not_reads in ('os.path.join(os.path.dirname(__file__), "..", "build")',
