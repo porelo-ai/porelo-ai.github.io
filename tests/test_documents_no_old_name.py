@@ -19,6 +19,9 @@ def tracked():
 
 
 def lines(path):
+    if os.path.isdir(os.path.join(ROOT, path)):
+        # A tracked link to a directory: what it points at is tracked, and read, under its own paths.
+        return []
     try:
         with open(os.path.join(ROOT, path), encoding="utf-8") as text:
             return text.read().splitlines()
