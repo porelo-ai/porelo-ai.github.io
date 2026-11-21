@@ -20,7 +20,7 @@ its own `doc/`, where its code is, and checks it there; this repository only col
   at which commit.
 - **A section's order** is the `nav` of the repository's own `mkdocs.yml`; without one, its `index.md` and then
   its other pages by name. Only pages and images are taken from `doc/`.
-- **A link that leaves `doc/`** (to the README, to `issues/`) points at that file in its repository, at the
+- **A link that leaves `doc/`** (to the README, to a source file) points at that file in its repository, at the
   commit the section was built from.
 - **When:** every night and by hand, always; every hour, only when a default branch moved since what the site
   shows (`parts.json` on the site says what that is).

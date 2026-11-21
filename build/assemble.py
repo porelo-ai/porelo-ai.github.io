@@ -8,7 +8,7 @@ which commit. A repository with no doc/ is left out and named in the
 log.
 
 A section's order is the `nav` of that repository's own mkdocs.yml, when it has one; otherwise its index.md, then
-its other pages by name. A relative link that leaves doc/ (to the README, to issues/) would be dead on the site,
+its other pages by name. A relative link that leaves doc/ (to the README, to a source file) would be dead on the site,
 so it is turned into a link to that file in the repository, at the commit the section was built from.
 
 Reads only. While the repositories are private, PORELO_DOCS_READ (a token that can read them and nothing else) is

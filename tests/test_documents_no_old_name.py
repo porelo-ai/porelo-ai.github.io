@@ -40,7 +40,7 @@ class NoOldNameTest(unittest.TestCase):
                     found.append(f"{name}:{number}: {line.strip()}")
 
         # A guard that reads nothing passes forever: assert what it read, then what it checks.
-        self.assertTrue({"AGENTS.md", "build/assemble.py", "issues/README.md"} <= set(files), files)
+        self.assertTrue({"AGENTS.md", "README.md", "build/assemble.py"} <= set(files), files)
         self.assertEqual([], found, "tracked files that say the old name")
 
 
