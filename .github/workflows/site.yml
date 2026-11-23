@@ -238,8 +238,9 @@ jobs:
                   PORELO_DOCS_READ: ${{ secrets.PORELO_DOCS_READ }}
               run: python build/assemble.py --out "$RUNNER_TEMP/site"
 
+            # Strict comes from the mkdocs.yml the collector writes, which Zensical reads.
             - name: The site, strict
-              run: mkdocs build --strict --config-file "$RUNNER_TEMP/site/mkdocs.yml"
+              run: zensical build --config-file "$RUNNER_TEMP/site/mkdocs.yml"
 
             - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
               with:

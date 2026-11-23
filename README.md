@@ -25,8 +25,9 @@ its own `doc/`, where its code is, and checks it there; this repository only col
 - **When:** every night and by hand, always; every hour, only when a default branch moved since what the site
   shows (`parts.json` on the site says what that is).
 
-`build/assemble.py` does the collecting; `.github/workflows/site.yml` runs it, builds with `mkdocs --strict` and
-publishes with GitHub Pages. The theme is Material for MkDocs, by configuration alone: a tab per kind of part
+`build/assemble.py` does the collecting; `.github/workflows/site.yml` runs it, builds with Zensical, strict, and
+publishes with GitHub Pages. Zensical reads the `mkdocs.yml` the collector writes; the theme is Material's, by
+configuration alone: a tab per kind of part
 (porelo, agents, build readers, messaging, ui, host, internal), each repository a section beneath its tab, search,
 light or dark as the reader's system says, and tables that wrap.
 
@@ -36,7 +37,7 @@ light or dark as the reader's system says, and tables that wrap.
 python3 -m venv .venv && .venv/bin/pip install --no-deps --require-hashes -r build/requirements.txt
 .venv/bin/python build/assemble.py --out /tmp/site                     # from GitHub, as the workflow does
 .venv/bin/python build/assemble.py --out /tmp/site --local core=../porelo --project-yml ../porelo-project/project.yml
-.venv/bin/mkdocs serve --config-file /tmp/site/mkdocs.yml
+.venv/bin/zensical serve --config-file /tmp/site/mkdocs.yml
 ```
 
 `--local NAME=PATH` takes a repository from a checkout instead of GitHub, to see a change before it is pushed.
