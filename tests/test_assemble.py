@@ -252,6 +252,16 @@ class AssembleTest(unittest.TestCase):
         self.assertEqual([part["name"] for part in self.run_with(readable)], ["core"])
 
 
+def texts(out):
+    """A text for every tab that can hold several repositories, in a folder of the test's own."""
+    where = os.path.join(out, "texts")
+    os.makedirs(where)
+    for tab, members in assemble.GROUPS:
+        with open(os.path.join(where, f"{assemble.slug(tab)}.md"), "w", encoding="utf-8") as file:
+            file.write(f"# {tab}\n\nWhat it is.\n\n{assemble.MARKER}\n\n## Install\n")
+    return where
+
+
 class MenuTest(unittest.TestCase):
 
     @staticmethod
@@ -266,7 +276,8 @@ class MenuTest(unittest.TestCase):
         parts = [(name, f"https://github.com/porelo-ai/{name}.git", f"what {name} is") for name in names]
         with tempfile.TemporaryDirectory() as out, \
                 mock.patch.object(assemble, "parts", return_value=parts), \
-                mock.patch.object(assemble, "fetch", side_effect=readable):
+                mock.patch.object(assemble, "fetch", side_effect=readable), \
+                mock.patch.object(assemble, "OVERVIEWS", texts(out)):
             assemble.assemble(os.path.join(out, "site"), {"repositories": {}}, {})
             with open(os.path.join(out, "site", "mkdocs.yml"), encoding="utf-8") as file:
                 config = assemble.yaml.safe_load(file)
@@ -294,36 +305,41 @@ class MenuTest(unittest.TestCase):
                           {"porelo project": ["porelo-project/index.md"]}]},
         ])
 
-    def test_a_tab_of_several_repositories_opens_on_an_overview_linking_each_first_page(self):
+    def test_a_tab_of_several_repositories_opens_on_its_text_with_a_line_per_repository(self):
         # Without it the tab opened on the first repository's first page, with no word of what the group is.
         _, _, overviews = self.config(["claude", "pi"], first={"pi": "about.md"})
 
         self.assertEqual(sorted(overviews), ["agents"])
-        self.assertIn("agent adapter", overviews["agents"])
-        self.assertIn("- [Claude Code](../../claude/index.md) - what claude is", overviews["agents"])
-        self.assertIn("- [Pi](../../pi/about.md) - what pi is", overviews["agents"])
+        self.assertEqual(overviews["agents"], "# agents\n\nWhat it is.\n\n"
+                         "- [Claude Code](../../claude/index.md) - what claude is\n"
+                         "- [Pi](../../pi/about.md) - what pi is\n\n## Install\n")
 
-    def test_a_tab_of_several_repositories_without_a_text_fails_the_build(self):
+    def test_a_tab_of_several_repositories_without_its_text_fails_the_build(self):
         # Published as it was, the tab would open on a page with nothing to say what the group is.
-        groups = [("pair", "Pair", None, [("a", "a", "A"), ("b", "b", "B")])]
-        with mock.patch.object(assemble, "GROUPS", groups):
+        with tempfile.TemporaryDirectory() as empty, \
+                mock.patch.object(assemble, "GROUPS", [("pair", [("a", "a", "A"), ("b", "b", "B")])]):
             with self.assertRaises(SystemExit):
-                assemble.grouped({"a": ["a/index.md"], "b": ["b/index.md"]}, {})
+                assemble.grouped({"a": ["a/index.md"], "b": ["b/index.md"]}, {}, empty)
+
+    def test_a_text_without_the_place_for_its_repositories_fails_the_build(self):
+        # The list of repositories would be left out without a word.
+        with tempfile.TemporaryDirectory() as where, \
+                mock.patch.object(assemble, "GROUPS", [("pair", [("a", "a", "A"), ("b", "b", "B")])]):
+            with open(os.path.join(where, "pair.md"), "w", encoding="utf-8") as file:
+                file.write("# Pair\n")
+            with self.assertRaises(SystemExit):
+                assemble.grouped({"a": ["a/index.md"], "b": ["b/index.md"]}, {}, where)
 
     def test_an_overview_links_an_external_first_page_as_it_is_and_folds_a_description(self):
-        groups = [("pair", "Pair", "Two.", [("a", "a", "A"), ("b", "b", "B")])]
-        with mock.patch.object(assemble, "GROUPS", groups):
+        with tempfile.TemporaryDirectory() as where, \
+                mock.patch.object(assemble, "GROUPS", [("a pair", [("a", "a", "A"), ("b", "b", "B")])]):
+            with open(os.path.join(where, "a-pair.md"), "w", encoding="utf-8") as file:
+                file.write(f"# Pair\n\n{assemble.MARKER}\n")
             _, pages = assemble.grouped({"a": ["https://example.org/a"], "b": ["b/my page.md"]},
-                                        {"a": "line one\nline two"})
+                                        {"a": "line one\nline two"}, where)
 
-        self.assertIn("- [A](https://example.org/a) - line one line two", pages["groups/pair/index.md"])
-        self.assertIn("- [B](../../b/my%20page.md)", pages["groups/pair/index.md"])
-
-    def test_every_tab_that_can_hold_several_repositories_has_an_overview_text(self):
-        # A tab with no text would fail the build only on the day its second repository gets pages.
-        for tab, heading, about, members in assemble.GROUPS:
-            if len(members) > 1:
-                self.assertTrue(heading and about, tab)
+        self.assertIn("- [A](https://example.org/a) - line one line two", pages["groups/a-pair/index.md"])
+        self.assertIn("- [B](../../b/my%20page.md)", pages["groups/a-pair/index.md"])
 
     def test_a_repository_no_group_names_is_a_tab_of_its_own_at_the_end(self):
         config, _, _ = self.config(["newcomer", "core"])

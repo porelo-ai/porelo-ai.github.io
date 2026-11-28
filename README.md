@@ -30,8 +30,9 @@ with `build/check_images.py` that every image a page shows is in the site, and p
 reads the `mkdocs.yml` the collector writes; the theme is Material's, by configuration alone: a tab per kind of part
 (porelo, agents, build readers, messaging, ui, host, internal), each repository a section beneath its tab, search,
 light or dark as the reader's system says, and tables that wrap. A tab that shows more than one repository opens on
-an overview the collector writes: what the group is, and a line per repository with its description from
-`project.yml`.
+an overview: its text is `doc/groups/<tab>.md` here, a page that says what the group is for, how its parts are
+installed and, last, how it works, and the collector puts a line per repository with its description from
+`project.yml` where the page's `<!-- the repositories -->` stands.
 
 ## Building it on your own computer
 

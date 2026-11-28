@@ -149,45 +149,39 @@ THEME = {
 # and not in project.yml, which is a Porelo project file with no field for groups. A tab alone in its group shows its
 # pages directly, with no section between. A repository with pages that no group names gets a tab of its own after
 # these, so a new one is never lost.
-# A tab that shows more than one repository opens on an overview of its own: the heading and text here, then a line
-# per repository with its title and its description from project.yml. Each member is (name, menu label, title).
+# A tab that shows more than one repository opens on an overview of its own: its text is the Markdown file OVERVIEWS
+# holds under the tab's name, and the collector puts a line per repository, with its title and its description from
+# project.yml, where the file's MARKER stands. Each member is (name, menu label, title).
 GROUPS = [
-    ("porelo", None, None, [("core", "porelo", "Porelo")]),
-    ("agents", "Agents",
-     "Porelo names no agent. Each one is an agent adapter: a program and a package of its own, installed beside "
-     "Porelo, which finds it at runtime and talks to it through the agent API. The adapter says how its agent is "
-     "installed into a task and driven there, and each lives in a repository of its own.",
-     [("claude", "claude code", "Claude Code"), ("pi", "pi", "Pi"), ("omp", "omp", "Oh My Pi"),
-      ("codex", "codex", "Codex"), ("agy", "agy", "Antigravity")]),
-    ("build readers", "Build readers",
-     "A build reader tells a task how its build went: it reads the verdict and the failing job's log from the build "
-     "server.",
-     [("github", "github", "GitHub and Forgejo"), ("bitbucket", "bitbucket", "Bitbucket"),
-      ("jenkins", "jenkins", "Jenkins")]),
-    ("messaging", "Messaging",
-     "The tasks of one project talk to each other in the project's room: a transport carries the messages, and the "
-     "sluice decides what may pass between tasks.",
-     [("matrix", "matrix", "Matrix"), ("sluice", "sluice", "Sluice")]),
-    ("ui", "User interfaces",
-     "Where the person sees and steers their tasks: the window, a graphical view of them, and the IntelliJ plugin, "
-     "which reviews an agent's waiting work in the IDE.",
-     [("frontend", "frontend", "The window"), ("intellij", "intellij", "IntelliJ")]),
-    ("host", None, None, [("host", "host", "Host")]),
-    ("internal", "Internal",
-     "How Porelo itself is built and developed: the tooling its repositories build and test with, and the project's "
-     "own rules.",
-     [("buildtools", "buildtools", "Build tools"), (PROJECT, "porelo project", "Porelo project")]),
+    ("porelo", [("core", "porelo", "Porelo")]),
+    ("agents", [("claude", "claude code", "Claude Code"), ("pi", "pi", "Pi"), ("omp", "omp", "Oh My Pi"),
+                ("codex", "codex", "Codex"), ("agy", "agy", "Antigravity")]),
+    ("build readers", [("github", "github", "GitHub and Forgejo"), ("bitbucket", "bitbucket", "Bitbucket"),
+                       ("jenkins", "jenkins", "Jenkins")]),
+    ("messaging", [("matrix", "matrix", "Matrix"), ("sluice", "sluice", "Sluice")]),
+    ("ui", [("frontend", "frontend", "The window"), ("intellij", "intellij", "IntelliJ")]),
+    ("host", [("host", "host", "Host")]),
+    ("internal", [("buildtools", "buildtools", "Build tools"), (PROJECT, "porelo project", "Porelo project")]),
 ]
 
+# Here, so the texts are read and changed as pages; each is written as the page groups/<tab>/index.md of the site.
+OVERVIEWS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "doc", "groups")
 
-def grouped(sections, described):
+MARKER = "<!-- the repositories -->"
+
+
+def slug(tab):
+    return tab.replace(" ", "-")
+
+
+def grouped(sections, described, overviews=None):
     """The menu from each built repository's section, by name, grouped as GROUPS says, and each tab's overview.
 
     Returns the menu and the overview pages, each a path under docs/ with its text; described maps a repository's
     name to its description.
     """
     nav, named, pages = [], set(), {}
-    for tab, heading, about, members in GROUPS:
+    for tab, members in GROUPS:
         named.update(name for name, _, _ in members)
         built = [(name, label, title) for name, label, title in members if name in sections]
         if not built:
@@ -197,11 +191,10 @@ def grouped(sections, described):
             continue
         entries = [{label: sections[name]} for name, label, _ in built]
         if len(built) > 1:
-            if not about:
-                raise SystemExit(f"the tab {tab} shows {len(built)} repositories and has no overview text in GROUPS")
             # Named index.md, so the theme's navigation.indexes makes it the tab's own page.
-            page = f"groups/{tab.replace(' ', '-')}/index.md"
-            pages[page] = overview(page, heading, about, built, sections, described)
+            page = f"groups/{slug(tab)}/index.md"
+            source = os.path.join(overviews or OVERVIEWS, f"{slug(tab)}.md")
+            pages[page] = overview(source, page, built, sections, described)
             entries.insert(0, page)
         nav.append({tab: entries})
     for name, section in sections.items():
@@ -211,8 +204,14 @@ def grouped(sections, described):
     return nav, pages
 
 
-def overview(page, heading, about, built, sections, described):
-    lines = [f"# {heading}", "", about, ""]
+def overview(source, page, built, sections, described):
+    if not os.path.isfile(source):
+        raise SystemExit(f"the tab's overview {page} has no text: {os.path.relpath(source)} is missing")
+    with open(source, encoding="utf-8") as read:
+        text = read.read()
+    if text.count(MARKER) != 1:
+        raise SystemExit(f"{os.path.relpath(source)} must hold the line {MARKER} once, where its repositories go")
+    lines = []
     for name, _, title in built:
         first = first_page(sections[name])
         if first is None:
@@ -222,7 +221,7 @@ def overview(page, heading, about, built, sections, described):
         # A folded description from project.yml would end the list item at its first line break.
         what = " ".join(described.get(name, "").split())
         lines.append(f"- [{title}]({link})" + (f" - {what}" if what else ""))
-    return "\n".join(lines) + "\n"
+    return text.replace(MARKER, "\n".join(lines))
 
 
 # What a page shows besides its text. Anything else in doc/ - a walk's JSON, a fixture - is not for the site.
