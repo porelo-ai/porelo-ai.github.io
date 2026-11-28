@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import urllib.request
 
 import yaml
@@ -148,34 +149,80 @@ THEME = {
 # and not in project.yml, which is a Porelo project file with no field for groups. A tab alone in its group shows its
 # pages directly, with no section between. A repository with pages that no group names gets a tab of its own after
 # these, so a new one is never lost.
+# A tab that shows more than one repository opens on an overview of its own: the heading and text here, then a line
+# per repository with its title and its description from project.yml. Each member is (name, menu label, title).
 GROUPS = [
-    ("porelo", [("core", "porelo")]),
-    ("agents", [("claude", "claude code"), ("pi", "pi"), ("omp", "omp"), ("codex", "codex"), ("agy", "agy")]),
-    ("build readers", [("github", "github"), ("bitbucket", "bitbucket"), ("jenkins", "jenkins")]),
-    ("messaging", [("matrix", "matrix"), ("sluice", "sluice")]),
-    ("ui", [("frontend", "frontend"), ("intellij", "intellij")]),
-    ("host", [("host", "host")]),
-    ("internal", [("buildtools", "buildtools"), (PROJECT, "porelo project")]),
+    ("porelo", None, None, [("core", "porelo", "Porelo")]),
+    ("agents", "Agents",
+     "Porelo names no agent. Each one is an agent adapter: a program and a package of its own, installed beside "
+     "Porelo, which finds it at runtime and talks to it through the agent API. The adapter says how its agent is "
+     "installed into a task and driven there, and each lives in a repository of its own.",
+     [("claude", "claude code", "Claude Code"), ("pi", "pi", "Pi"), ("omp", "omp", "Oh My Pi"),
+      ("codex", "codex", "Codex"), ("agy", "agy", "Antigravity")]),
+    ("build readers", "Build readers",
+     "A build reader tells a task how its build went: it reads the verdict and the failing job's log from the build "
+     "server.",
+     [("github", "github", "GitHub and Forgejo"), ("bitbucket", "bitbucket", "Bitbucket"),
+      ("jenkins", "jenkins", "Jenkins")]),
+    ("messaging", "Messaging",
+     "The tasks of one project talk to each other in the project's room: a transport carries the messages, and the "
+     "sluice decides what may pass between tasks.",
+     [("matrix", "matrix", "Matrix"), ("sluice", "sluice", "Sluice")]),
+    ("ui", "User interfaces",
+     "Where the person sees and steers their tasks: the window, a graphical view of them, and the IntelliJ plugin, "
+     "which reviews an agent's waiting work in the IDE.",
+     [("frontend", "frontend", "The window"), ("intellij", "intellij", "IntelliJ")]),
+    ("host", None, None, [("host", "host", "Host")]),
+    ("internal", "Internal",
+     "How Porelo itself is built and developed: the tooling its repositories build and test with, and the project's "
+     "own rules.",
+     [("buildtools", "buildtools", "Build tools"), (PROJECT, "porelo project", "Porelo project")]),
 ]
 
 
-def grouped(sections):
-    """The menu from each built repository's section, by name, grouped as GROUPS says."""
-    nav, named = [], set()
-    for tab, members in GROUPS:
-        named.update(name for name, _ in members)
-        built = [(label, sections[name]) for name, label in members if name in sections]
+def grouped(sections, described):
+    """The menu from each built repository's section, by name, grouped as GROUPS says, and each tab's overview.
+
+    Returns the menu and the overview pages, each a path under docs/ with its text; described maps a repository's
+    name to its description.
+    """
+    nav, named, pages = [], set(), {}
+    for tab, heading, about, members in GROUPS:
+        named.update(name for name, _, _ in members)
+        built = [(name, label, title) for name, label, title in members if name in sections]
         if not built:
             continue
         if tab == "porelo":
-            nav.append({tab: built[0][1]})
-        else:
-            nav.append({tab: [{label: section} for label, section in built]})
+            nav.append({tab: sections[built[0][0]]})
+            continue
+        entries = [{label: sections[name]} for name, label, _ in built]
+        if len(built) > 1:
+            if not about:
+                raise SystemExit(f"the tab {tab} shows {len(built)} repositories and has no overview text in GROUPS")
+            # Named index.md, so the theme's navigation.indexes makes it the tab's own page.
+            page = f"groups/{tab.replace(' ', '-')}/index.md"
+            pages[page] = overview(page, heading, about, built, sections, described)
+            entries.insert(0, page)
+        nav.append({tab: entries})
     for name, section in sections.items():
         if name not in named:
             log(f"{name} is in no group of the menu: a tab of its own")
             nav.append({name: section})
-    return nav
+    return nav, pages
+
+
+def overview(page, heading, about, built, sections, described):
+    lines = [f"# {heading}", "", about, ""]
+    for name, _, title in built:
+        first = first_page(sections[name])
+        if first is None:
+            raise SystemExit(f"cannot write the tab's overview {page}: {name}'s section names no page")
+        link = first if re.match(r"^[a-z]+://", first) else urllib.parse.quote(
+            os.path.relpath(first, os.path.dirname(page)))
+        # A folded description from project.yml would end the list item at its first line break.
+        what = " ".join(described.get(name, "").split())
+        lines.append(f"- [{title}]({link})" + (f" - {what}" if what else ""))
+    return "\n".join(lines) + "\n"
 
 
 # What a page shows besides its text. Anything else in doc/ - a walk's JSON, a fixture - is not for the site.
@@ -186,7 +233,7 @@ MATURITY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "doc",
 
 LINK = re.compile(r"(\]\()([^)\s]+)(\))")
 
-# A link inside raw HTML: MkDocs moves a Markdown link for a page that becomes a directory, but not one of these.
+# A link inside raw HTML, which leaves doc/ as a Markdown link does.
 HTML_LINK = re.compile(r"""(<[a-zA-Z][^>]*?\s(?:src|href)=")([^"]+)(")""")
 
 
@@ -210,12 +257,8 @@ def relinked(text, page, doc, repository, commit):
         if re.match(r"^[a-z][a-z0-9+.-]*:|^#|^/", target):
             return match.group(0)
         moved = one(re.match(r"(\]\()(.*)(\))", f"]({target})"))
-        if moved != f"]({target})":
-            return f"{match.group(1)}{moved[2:-1]}{match.group(3)}"
-        # A page other than index.md is served from a directory of its own name, one level below its file.
-        if os.path.basename(page) != "index.md":
-            target = "../" + target
-        return f"{match.group(1)}{target}{match.group(3)}"
+        # One inside doc/ stays as written: Zensical moves it for a page served one directory lower.
+        return f"{match.group(1)}{moved[2:-1]}{match.group(3)}"
 
     return HTML_LINK.sub(html, LINK.sub(one, text))
 
@@ -309,11 +352,19 @@ def assemble(out, project, local):
         index.write(landing(built, docs))
     with open(os.path.join(docs, "parts.json"), "w", encoding="utf-8") as manifest:
         json.dump(considered, manifest, indent=1)
+    nav, overviews = grouped(sections, {part["name"]: part["description"] for part in built})
+    for page, text in overviews.items():
+        target = os.path.join(docs, page)
+        if os.path.exists(target):
+            raise SystemExit(f"cannot write the tab's overview {page}: a repository's section already holds it")
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        with open(target, "w", encoding="utf-8") as write:
+            write.write(text)
     config = {"site_name": "Porelo", "site_url": SITE_URL, "repo_url": f"https://github.com/{ORG}",
               "docs_dir": "docs", "site_dir": "site", "theme": THEME, "plugins": ["search"],
               "markdown_extensions": ["tables", "admonition", "attr_list", {"toc": {"permalink": True}}],
               # The landing page is the site's root, where the title leads, and no tab of its own.
-              "strict": True, "not_in_nav": "/index.md", "nav": grouped(sections)}
+              "strict": True, "not_in_nav": "/index.md", "nav": nav}
     with open(os.path.join(out, "mkdocs.yml"), "w", encoding="utf-8") as file:
         yaml.safe_dump(config, file, sort_keys=False, allow_unicode=True)
     return built

@@ -25,11 +25,13 @@ its own `doc/`, where its code is, and checks it there; this repository only col
 - **When:** every night and by hand, always; every hour, only when a default branch moved since what the site
   shows (`parts.json` on the site says what that is).
 
-`build/assemble.py` does the collecting; `.github/workflows/site.yml` runs it, builds with Zensical, strict, and
-publishes with GitHub Pages. Zensical reads the `mkdocs.yml` the collector writes; the theme is Material's, by
-configuration alone: a tab per kind of part
+`build/assemble.py` does the collecting; `.github/workflows/site.yml` runs it, builds with Zensical, strict, checks
+with `build/check_images.py` that every image a page shows is in the site, and publishes with GitHub Pages. Zensical
+reads the `mkdocs.yml` the collector writes; the theme is Material's, by configuration alone: a tab per kind of part
 (porelo, agents, build readers, messaging, ui, host, internal), each repository a section beneath its tab, search,
-light or dark as the reader's system says, and tables that wrap.
+light or dark as the reader's system says, and tables that wrap. A tab that shows more than one repository opens on
+an overview the collector writes: what the group is, and a line per repository with its description from
+`project.yml`.
 
 ## Building it on your own computer
 

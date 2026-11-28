@@ -96,17 +96,19 @@ class PartsTest(unittest.TestCase):
 
 class RelinkedTest(unittest.TestCase):
 
-    def test_a_relative_source_in_raw_html_reaches_its_file_from_the_pages_own_directory(self):
-        # Measured on the site: core/how-it-works/ showed no picture, as its <img src="images/dummy.svg"> was read
-        # from core/how-it-works/images/. MkDocs moves Markdown's links for a page that becomes a directory, not HTML.
+    def test_a_relative_source_in_raw_html_inside_doc_stays_for_zensical_to_move(self):
+        # Measured on the site: core/how-it-works/ asked ../../images/dummy.svg, as Zensical moved a source that had
+        # been moved one level down already; a page served one directory lower is Zensical's to account for.
         text = '<img align="left" src="images/dummy.svg" alt="a dummy">\n![shown](images/b.svg)\n'
 
-        page = assemble.relinked(text, "/r/doc/how-it-works.md", "/r/doc", "porelo", "0" * 40)
-        index = assemble.relinked(text, "/r/doc/index.md", "/r/doc", "porelo", "0" * 40)
+        for page in ("/r/doc/how-it-works.md", "/r/doc/index.md"):
+            self.assertEqual(assemble.relinked(text, page, "/r/doc", "porelo", "0" * 40), text, page)
 
-        self.assertIn('src="../images/dummy.svg"', page)
-        self.assertIn("](images/b.svg)", page)
-        self.assertIn('src="images/dummy.svg"', index)
+    def test_a_raw_html_source_that_leaves_doc_points_at_the_repository(self):
+        text = '<img src="../build/a.svg">'
+
+        self.assertEqual(assemble.relinked(text, "/r/doc/page.md", "/r/doc", "porelo", "0" * 40),
+                         f'<img src="https://github.com/porelo-ai/porelo/blob/{"0" * 40}/build/a.svg">')
 
     def test_an_absolute_or_external_source_stays(self):
         text = '<img src="https://example.org/a.svg"> <img src="/a.svg"> <a href="#top">top</a>'
@@ -253,48 +255,88 @@ class AssembleTest(unittest.TestCase):
 class MenuTest(unittest.TestCase):
 
     @staticmethod
-    def config(names):
+    def config(names, first=None):
         def readable(name, url, where):
             os.makedirs(os.path.join(where, "doc"))
-            with open(os.path.join(where, "doc", "index.md"), "w", encoding="utf-8") as page:
-                page.write(f"# {name}\n")
+            page = (first or {}).get(name, "index.md")
+            with open(os.path.join(where, "doc", page), "w", encoding="utf-8") as file:
+                file.write(f"# {name}\n")
             return {"name": name, "ref": "main", "commit": "0" * 40}
 
-        parts = [(name, f"https://github.com/porelo-ai/{name}.git", "") for name in names]
+        parts = [(name, f"https://github.com/porelo-ai/{name}.git", f"what {name} is") for name in names]
         with tempfile.TemporaryDirectory() as out, \
                 mock.patch.object(assemble, "parts", return_value=parts), \
                 mock.patch.object(assemble, "fetch", side_effect=readable):
             assemble.assemble(os.path.join(out, "site"), {"repositories": {}}, {})
             with open(os.path.join(out, "site", "mkdocs.yml"), encoding="utf-8") as file:
                 config = assemble.yaml.safe_load(file)
-            written = os.path.isfile(os.path.join(out, "site", "docs", "index.md"))
-        return config, written
+            docs = os.path.join(out, "site", "docs")
+            written = os.path.isfile(os.path.join(docs, "index.md"))
+            overviews = {}
+            if os.path.isdir(os.path.join(docs, "groups")):
+                for tab in os.listdir(os.path.join(docs, "groups")):
+                    with open(os.path.join(docs, "groups", tab, "index.md"), encoding="utf-8") as file:
+                        overviews[tab] = file.read()
+        return config, written, overviews
 
     def test_the_menu_is_a_tab_per_kind_of_part_with_each_repository_a_section(self):
-        config, _ = self.config(["core", "frontend", "sluice", "matrix", "claude", "pi", "omp", "buildtools", "github",
-                                 "intellij", "porelo-project"])
+        config, _, _ = self.config(["core", "frontend", "sluice", "matrix", "claude", "pi", "omp", "buildtools",
+                                    "github", "intellij", "porelo-project"])
 
         self.assertEqual(config["nav"], [
             {"porelo": ["core/index.md"]},
-            {"agents": [{"claude code": ["claude/index.md"]}, {"pi": ["pi/index.md"]}, {"omp": ["omp/index.md"]}]},
+            {"agents": ["groups/agents/index.md", {"claude code": ["claude/index.md"]}, {"pi": ["pi/index.md"]},
+                        {"omp": ["omp/index.md"]}]},
             {"build readers": [{"github": ["github/index.md"]}]},
-            {"messaging": [{"matrix": ["matrix/index.md"]}, {"sluice": ["sluice/index.md"]}]},
-            {"ui": [{"frontend": ["frontend/index.md"]}, {"intellij": ["intellij/index.md"]}]},
-            {"internal": [{"buildtools": ["buildtools/index.md"]}, {"porelo project": ["porelo-project/index.md"]}]},
+            {"messaging": ["groups/messaging/index.md", {"matrix": ["matrix/index.md"]}, {"sluice": ["sluice/index.md"]}]},
+            {"ui": ["groups/ui/index.md", {"frontend": ["frontend/index.md"]}, {"intellij": ["intellij/index.md"]}]},
+            {"internal": ["groups/internal/index.md", {"buildtools": ["buildtools/index.md"]},
+                          {"porelo project": ["porelo-project/index.md"]}]},
         ])
 
+    def test_a_tab_of_several_repositories_opens_on_an_overview_linking_each_first_page(self):
+        # Without it the tab opened on the first repository's first page, with no word of what the group is.
+        _, _, overviews = self.config(["claude", "pi"], first={"pi": "about.md"})
+
+        self.assertEqual(sorted(overviews), ["agents"])
+        self.assertIn("agent adapter", overviews["agents"])
+        self.assertIn("- [Claude Code](../../claude/index.md) - what claude is", overviews["agents"])
+        self.assertIn("- [Pi](../../pi/about.md) - what pi is", overviews["agents"])
+
+    def test_a_tab_of_several_repositories_without_a_text_fails_the_build(self):
+        # Published as it was, the tab would open on a page with nothing to say what the group is.
+        groups = [("pair", "Pair", None, [("a", "a", "A"), ("b", "b", "B")])]
+        with mock.patch.object(assemble, "GROUPS", groups):
+            with self.assertRaises(SystemExit):
+                assemble.grouped({"a": ["a/index.md"], "b": ["b/index.md"]}, {})
+
+    def test_an_overview_links_an_external_first_page_as_it_is_and_folds_a_description(self):
+        groups = [("pair", "Pair", "Two.", [("a", "a", "A"), ("b", "b", "B")])]
+        with mock.patch.object(assemble, "GROUPS", groups):
+            _, pages = assemble.grouped({"a": ["https://example.org/a"], "b": ["b/my page.md"]},
+                                        {"a": "line one\nline two"})
+
+        self.assertIn("- [A](https://example.org/a) - line one line two", pages["groups/pair/index.md"])
+        self.assertIn("- [B](../../b/my%20page.md)", pages["groups/pair/index.md"])
+
+    def test_every_tab_that_can_hold_several_repositories_has_an_overview_text(self):
+        # A tab with no text would fail the build only on the day its second repository gets pages.
+        for tab, heading, about, members in assemble.GROUPS:
+            if len(members) > 1:
+                self.assertTrue(heading and about, tab)
+
     def test_a_repository_no_group_names_is_a_tab_of_its_own_at_the_end(self):
-        config, _ = self.config(["newcomer", "core"])
+        config, _, _ = self.config(["newcomer", "core"])
 
         self.assertEqual(config["nav"], [{"porelo": ["core/index.md"]}, {"newcomer": ["newcomer/index.md"]}])
 
     def test_a_group_with_nothing_built_is_left_out(self):
-        config, _ = self.config(["core", "pi"])
+        config, _, _ = self.config(["core", "pi"])
 
         self.assertEqual([next(iter(tab)) for tab in config["nav"]], ["porelo", "agents"])
 
     def test_the_landing_page_is_written_and_has_no_tab(self):
-        config, written = self.config(["core"])
+        config, written, _ = self.config(["core"])
 
         self.assertTrue(written)
         self.assertNotIn("index.md", str(config["nav"]).replace("core/index.md", ""))
